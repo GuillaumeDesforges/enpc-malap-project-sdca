@@ -6,27 +6,29 @@ import matplotlib.pyplot as plt
 from .losses import build_increment
 
 
-def sdca(X, Y, loss, n_iter, lamb):
+def fit(X, Y, loss, n_iter, lamb, history=False):
     # problem shape
     n, d = X.shape
 
     # alpha
     alpha = np.ones(n)
 
-    # alpha history
-    hist_alpha = np.zeros((n_iter, n))
-    hist_alpha[0] = np.copy(alpha)
-    
     # weights
     w = np.sum(alpha[:, np.newaxis]*X, axis=0)/(lamb*n)
-
-    # weights history
-    hist_w = np.zeros((n_iter, d))
-    hist_w[0] = np.copy(w)
 
     # get increment function depending on the loss
     compute_increment = build_increment(loss, lamb, n)
     
+    # computation histories
+    if history:
+        # alpha history
+        hist_alpha = np.zeros((n_iter, n))
+        hist_alpha[0] = np.copy(alpha)
+        
+        # weights history
+        hist_w = np.zeros((n_iter, d))
+        hist_w[0] = np.copy(w)
+
     # iterations
     for t in range(1, n_iter):
         # select i in [0, n[
@@ -45,10 +47,29 @@ def sdca(X, Y, loss, n_iter, lamb):
 
         # update weights
         w += delta*x/(lamb*n)
+        
+        if history:
+            # save history
+            hist_alpha[t] = np.copy(alpha)
+            hist_w[t] = np.copy(w)
 
-        # save history
-        hist_alpha[t] = np.copy(alpha)
-        hist_w[t] = np.copy(w)
+    if history:
+        return hist_alpha, hist_w
 
-    return hist_alpha, hist_w
+    return alpha, w
+
+
+def predict(X, w):
+    Y_pred = np.dot(X, w)
+    Y_pred[Y_pred <  0] = -1
+    Y_pred[Y_pred >= 0] = 1
+    return Y_pred
+
+
+def score(X, Y, w):
+    n, _ = X.shape
+    Y_pred = predict(X, w)
+    errors = np.not_equal(Y_pred, Y)
+    error_rate = np.sum(errors)/n
+    return 1-error_rate
 

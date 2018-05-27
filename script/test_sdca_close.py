@@ -5,22 +5,7 @@ import matplotlib.pyplot as plt
 
 from util.malaptools import gen_arti, plot_data, plot_frontiere
 
-from sdca_close.sdca import sdca
-
-
-def predict(X, w):
-    Y_pred = np.dot(X, w)
-    Y_pred[Y_pred <  0] = -1
-    Y_pred[Y_pred >= 0] = 1
-    return Y_pred
-
-
-def score(X, Y, w):
-    n, _ = X.shape
-    Y_pred = predict(X, w)
-    errors = np.not_equal(Y_pred, Y)
-    error_rate = np.sum(errors)/n
-    return error_rate
+from sdca_close.sdca import fit, predict, score
 
 
 def main():
@@ -32,7 +17,7 @@ def main():
     
     # Compute SDCA
     n_iter = 100
-    hist_alpha, hist_w = sdca(X, Y, loss='square_loss', n_iter=n_iter, lamb=1)
+    hist_alpha, hist_w = fit(X, Y, loss='square_loss', n_iter=n_iter, lamb=1, history=True)
     w = hist_w[-1]
 
     # Plot result
