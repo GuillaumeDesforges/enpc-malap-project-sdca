@@ -57,7 +57,7 @@ def main():
     hist_error_rate_test = [1-score(X_test, Y_test, hist_w[t]) for t in range(n_iter)]
 
     plt.figure()
-    plt.title("Learning curve")
+    plt.title("Evolution of error rate")
     plt.xlabel('Number of iterations')
     plt.ylabel('Error rate')
     plt.plot(hist_error_rate_train, label='Train set')
