@@ -23,6 +23,7 @@ def main():
     plt.yticks([])
     plt.xlim(*xlims)
     plt.ylim(*ylims)
+    plt.savefig('figs/figure1.png')
     plt.show()
     
     # Compute SDCA
@@ -39,6 +40,7 @@ def main():
     plt.yticks([])
     plt.xlim(*xlims)
     plt.ylim(*ylims)
+    plt.savefig('figs/figure2.png')
     plt.show()
 
     # Plot some stats
@@ -47,19 +49,21 @@ def main():
     plt.title("Evolution of alpha")
     for i in range(n):
         plt.plot(hist_alpha[:, i])
+    plt.savefig('figs/figure3.png')
     plt.show()
     
     X_test, Y_test = gen_arti(nbex=100, **data_args)
-    hist_error_rate_train = [score(X, Y, hist_w[t]) for t in range(n_iter)]
-    hist_error_rate_test = [score(X_test, Y_test, hist_w[t]) for t in range(n_iter)]
+    hist_error_rate_train = [1-score(X, Y, hist_w[t]) for t in range(n_iter)]
+    hist_error_rate_test = [1-score(X_test, Y_test, hist_w[t]) for t in range(n_iter)]
 
     plt.figure()
     plt.title("Learning curve")
     plt.xlabel('Number of iterations')
-    plt.ylabel('Accuracy')
+    plt.ylabel('Error rate')
     plt.plot(hist_error_rate_train, label='Train set')
     plt.plot(hist_error_rate_test, label='Test set')
     plt.legend()
+    plt.savefig('figs/figure4.png')
     plt.show()
     
 
