@@ -31,7 +31,9 @@ def main():
     for i, (X, Y) in enumerate(datasets_data):
         labels = np.unique(Y)
         labels_n = len(labels)
-        labels_sample_n = len(labels) // 2
+        # split into two even classes : labels_sample_n = len(labels) // 2
+        # 1vAll
+        labels_sample_n = 1
         labels_sample = labels[:labels_sample_n]
         Y_nonlogical = np.copy(Y)
         Y[np.isin(Y_nonlogical, labels_sample)] = -1
@@ -52,8 +54,8 @@ def main():
         print()
     
     # Fit each
-    datasets_n_iter = [10000, 500, 50, 10000]
-    datasets_hist_w = [fit(X, Y, loss='square_loss', n_iter=n_iter, lamb=1, history=True)[1] for (X, Y), n_iter in zip(datasets_data, datasets_n_iter)]
+    datasets_n_iter = [10000 for dataset in datasets]
+    datasets_hist_w = [fit(X, Y, loss='logistic_loss', n_iter=n_iter, lamb=1, history=True)[1] for (X, Y), n_iter in zip(datasets_data, datasets_n_iter)]
     datasets_w = [hist_w[-1] for hist_w in datasets_hist_w]
 
     # Score each
@@ -65,11 +67,11 @@ def main():
 
     # Plot score evolutions
     for name, (X, Y), n_iter, hist_w in zip(datasets_name, datasets_data, datasets_n_iter, datasets_hist_w):
-        hist_score = [score(X, Y, hist_w[t]) for t in range(n_iter)]
-        plt.title("Evolution of score for dataset {}".format(name))
-        plt.plot(hist_score)
-        plt.xlabel("Iterations")
-        plt.ylabel("Score")
+        hist_error = [1-score(X, Y, hist_w[t]) for t in range(n_iter)]
+        plt.title("Evolution of error rate for dataset {}".format(name))
+        plt.plot(hist_error)
+        plt.xlabel("Number of iterations")
+        plt.ylabel("Error rate")
         plt.ylim(0, 1)
         plt.show()
 
