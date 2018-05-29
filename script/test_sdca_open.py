@@ -7,9 +7,10 @@ from util.malaptools import gen_arti, plot_data, plot_frontiere
 from sdca_open.sdca import sdca
 
 def main():
-    X, Y = gen_arti(nbex=100)
+    data_args = {'data_type':0, 'epsilon': 0.1, 'sigma':0.5}
+    X, Y = gen_arti(nbex=1000, **data_args)
     
-    w = sdca(X, Y, verbose=True, plot_alphas=True)
+    w = sdca(X, Y, verbose=False, plot_alphas=True)
     
     def predict(X):
         Y_pred = np.dot(X, w)
