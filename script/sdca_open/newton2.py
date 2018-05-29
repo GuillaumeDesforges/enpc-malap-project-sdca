@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def newton2(a, b, c1, c2, xi=0.01, threshold=1e-6, max_iter=1000, verbose=False, plot=False):
+def newton2(a, b, c1, c2, xi=0.01, threshold=1e-6, max_iter=10, verbose=False, plot=False):
     if verbose:
         print("Newton 2")
     s = c1 + c2
@@ -33,7 +33,8 @@ def newton2(a, b, c1, c2, xi=0.01, threshold=1e-6, max_iter=1000, verbose=False,
     k = 0
     while abs(grad) > threshold:
         if k > max_iter:
-            raise Exception("Max iter reached !")
+            # raise Exception("Max iter reached !")
+            break
         
         if verbose:
             print('loss', gt(Zt))
