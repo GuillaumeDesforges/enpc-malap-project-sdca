@@ -37,7 +37,7 @@ class classifier_SGD:
             if (j == N):
                 np.random.shuffle(ind)
                 j = 0
-            self.w += self.eps*(self.C * y[j,0] * X[j,:].reshape(-1,1) / (1 + np.exp(y[j,0] * X[j,:].dot(self.w))) - self.w)
+            self.w += self.eps*(self.C * y[j] * X[j,:].reshape(-1,1) / (1 + np.exp(y[j] * X[j,:].dot(self.w))) - self.w)
             self.vect_coefs.append(self.w[self.index_coefs])
             self.vect_score_learn.append(self.score(X, y))
             self.risk.append(self.calc_risque(X, y))

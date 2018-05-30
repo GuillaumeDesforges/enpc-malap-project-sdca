@@ -13,7 +13,7 @@ import sklearn.datasets
 np.random.seed(0)
 
 #number of iterations
-T = 1000
+T = 10
 
 # Calcul of the score for logistic regression
 def score_logistic(X, Y, w):
@@ -28,7 +28,8 @@ boston = sklearn.datasets.load_boston()
 iris = sklearn.datasets.load_iris()
 diabetes = sklearn.datasets.load_diabetes()
 digits = sklearn.datasets.load_digits()
-datasets = [boston, iris, diabetes, digits]
+# datasets = [boston, iris, diabetes, digits]
+datasets = [digits]
 
 # Extract data
 get_name = lambda dataset: dataset['DESCR'].split('\n')[0]
@@ -60,6 +61,7 @@ datasets_w = [hist_w[-1] for hist_w in datasets_hist_w]
 # Fit each : SGD
 sdca_clf = []
 for (X, Y), n_iter in zip(datasets_data, datasets_n_iter):
+    # TODO change that, as it SUCKS
     clf = classifier_SGD(maxIter=n_iter, eps=10**-8)
     clf.fit(X, Y)
     sdca_clf.append(clf)
@@ -70,7 +72,7 @@ for i in range(len(datasets)):
     plt.figure()
     vect_score_sdca = []
     vect_score_sgd = []
-    for t in range(T+1):
+    for t in range(T):
         vect_score_sdca.append(score_logistic(X, Y, datasets_hist_w[i][t]))
         vect_score_sgd.append(score_logistic(X, Y, sdca_clf[i].vect_w[t]))
     plt.plot(vect_score_sgd, c='b', label="SGD")
