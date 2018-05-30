@@ -20,7 +20,7 @@ def main():
     datasets = [boston, iris, diabetes, digits]
 
     # Extract data
-    get_name = lambda dataset: dataset['DESCR'].split('\n')[0]
+    #get_name = lambda dataset: dataset['DESCR'].split('\n')[0]
     datasets_name = [get_name(dataset) for dataset in datasets]
     get_data = lambda dataset: (dataset['data'], dataset['target'])
     datasets_data = [get_data(dataset) for dataset in datasets]

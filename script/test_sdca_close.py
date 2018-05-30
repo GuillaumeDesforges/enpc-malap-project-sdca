@@ -10,6 +10,8 @@ from util.malaptools import gen_arti, plot_data, plot_frontiere
 from sdca_close.sdca import fit, predict, score
 from sdca_close.losses import LOSSES
 
+from sgd.classifier_sgd import classifier_SGD
+
 
 def savefig(loss, i):
     figs_path = os.path.join('figs', loss)

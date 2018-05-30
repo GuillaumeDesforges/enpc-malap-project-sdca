@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 class classifier_SGD:
-    def __init__(self, maxIter=100, eps=10**-4, C=1, nb_coefs=10):
+    def __init__(self, maxIter=500, eps=10**-4, C=1, nb_coefs=10):
         self.maxIter = maxIter
         self.eps = eps
         self.C = C
@@ -12,6 +12,7 @@ class classifier_SGD:
         
         #stockage des itérations en cours
         self.vect_coefs = []
+        self.vect_w = []
         
         #score au fil de l'apprentissage
         self.vect_score_learn = []
@@ -27,14 +28,22 @@ class classifier_SGD:
         np.random.shuffle(index)
         self.index_coefs = index[:self.nb_coefs]
         
-        for i in range(self.maxIter):
-            ind = np.arange(N)
-            np.random.shuffle(ind)
-            for j in ind:
-                self.w += self.eps*(self.C * y[j,0] * X[j,:].reshape(-1,1) / (1 + np.exp(y[j,0] * X[j,:].dot(self.w))) - self.w)
-                self.vect_coefs.append(self.w[self.index_coefs])
-                self.vect_score_learn.append(self.score(X, y))
-                self.risk.append(self.calc_risque(X, y))
+        i = 0
+        j = 0
+        ind = np.arange(N)
+        np.random.shuffle(ind)
+        self.vect_w.append(self.w)
+        while i < self.maxIter:
+            if (j == N):
+                np.random.shuffle(ind)
+                j = 0
+            self.w += self.eps*(self.C * y[j,0] * X[j,:].reshape(-1,1) / (1 + np.exp(y[j,0] * X[j,:].dot(self.w))) - self.w)
+            self.vect_coefs.append(self.w[self.index_coefs])
+            self.vect_score_learn.append(self.score(X, y))
+            self.risk.append(self.calc_risque(X, y))
+            i += 1
+            j += 1
+            self.vect_w.append(self.w.copy())
     
     def predict(self, x):
         x = x.reshape(-1,1)
