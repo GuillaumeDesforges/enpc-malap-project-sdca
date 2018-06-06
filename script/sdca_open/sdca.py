@@ -45,7 +45,7 @@ def sdca(X, Y, C=10, eps1=0.1, eps2=0.5, n_iter=1000, verbose=False, plot_alphas
         a = Q_ii
         b = y_i*np.dot(w, x_i)
         if verbose:
-            print('c1', c1)
+            print('c1', c1).idea/
             print('c2', c2)
             print('a', a)
             print('b', b)
