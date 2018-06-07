@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import engine.utils.malaptools as malaptools
 
 from engine.estimators.logistic_regression import LogisticRegression
+from engine.optimizers.sdca_logistic import LogisticSDCA
 from engine.optimizers.sgd_logistic import LogisticSGD
 
 # make data
@@ -18,12 +19,12 @@ y2 = np.ones(shape=n2)
 y = np.concatenate([y1, y2])
 
 # make estimator
-sgd = LogisticSGD(1, 1e-3)
+sgd = LogisticSGD(c=1, eps=1e-3)
 sgd_clf = LogisticRegression(optimizer=sgd)
 
 # train estimator with history
-hist_w, hist_loss = sgd_clf.fit(x, y, epochs=20, save_hist=True)
-hist_w = np.array(hist_w)
+sgd_hist_w, sgd_hist_loss = sgd_clf.fit(x, y, epochs=20, save_hist=True)
+sgd_hist_w = np.array(sgd_hist_w)
 
 # verify result
 malaptools.plot_frontiere(x, sgd_clf.predict)
@@ -31,9 +32,40 @@ malaptools.plot_data(x, y)
 plt.show()
 
 # plot histories
-for d in range(hist_w.shape[1]):
-    plt.plot(hist_w[:, d])
+for d in range(sgd_hist_w.shape[1]):
+    plt.plot(sgd_hist_w[:, d])
 plt.show()
 
-plt.plot(hist_loss)
+plt.plot(sgd_hist_loss)
+plt.show()
+
+
+# do it again with SDCA !
+sdca = LogisticSDCA(c=1)
+sdca_clf = LogisticRegression(optimizer=sdca)
+
+sdca_hist_w, sdca_hist_loss, sdca_hist_alpha = sdca_clf.fit(x, y, epochs=20, save_hist=True)
+sdca_hist_w = np.array(sdca_hist_w)
+sdca_hist_alpha = np.array(sdca_hist_alpha)
+
+malaptools.plot_frontiere(x, sdca_clf.predict)
+malaptools.plot_data(x, y)
+plt.show()
+
+for d in range(sdca_hist_w.shape[1]):
+    plt.plot(sdca_hist_w[:, d])
+plt.show()
+
+for n in range(sdca_hist_alpha.shape[1]):
+    plt.plot(sdca_hist_alpha[:, n])
+plt.show()
+
+plt.plot(sdca_hist_loss)
+plt.show()
+
+# comparison
+plt.title("Comparison : SGD vs SDCA on a simple dataset")
+plt.plot(sgd_hist_loss, label="SGD")
+plt.plot(sdca_hist_loss, label="SDCA")
+plt.legend()
 plt.show()

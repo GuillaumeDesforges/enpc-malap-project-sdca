@@ -3,8 +3,7 @@ from engine.optimizers.base_sdca import BaseSDCA
 
 
 def logistic_loss(x, y, w, c):
-    # TODO
-    return 0
+    return c * np.sum([np.log(1 + np.exp(-y[i] * np.dot(w.T, x[i]))) for i in range(x.shape[0])]) + np.dot(w, w) / 2
 
 
 def logistic_increment(x_i, y_i, w, alpha_i, c, n):
