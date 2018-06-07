@@ -54,6 +54,7 @@ def fit(X, Y, loss, n_iter, lamb, history=False):
             hist_w[t] = np.copy(w)
 
     if history:
+        hist_alpha = []
         return hist_alpha, hist_w
 
     return alpha, w
