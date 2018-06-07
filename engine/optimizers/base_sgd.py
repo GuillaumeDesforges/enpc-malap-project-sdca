@@ -4,7 +4,7 @@ from engine.optimizers.base_optimizer import BaseOptimizer
 
 class BaseSGD(BaseOptimizer):
     def __init__(self, loss, increment):
-        super().__init__(self)
+        super().__init__()
         self.loss = loss
         self.increment = increment
 

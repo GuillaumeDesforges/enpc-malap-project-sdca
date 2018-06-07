@@ -6,7 +6,7 @@ from engine.optimizers.sgd_logistic import LogisticSGD
 
 class LogisticRegression(BaseEstimator):
     def __init__(self, optimizer: BaseOptimizer=LogisticSGD(2, 1e-4)):
-        super().__init__(self)
+        super().__init__()
         self.optimizer = optimizer
         self.w = np.zeros(1)
 
@@ -14,7 +14,7 @@ class LogisticRegression(BaseEstimator):
         self.w = self.optimizer.optimize(x, y)
 
     def predict(self, x: np.ndarray, threshold: int=0.5):
-        y_pred = 1 / (1 + np.exp(- np.dot(self.w, x)))
+        y_pred = 1 / (1 + np.exp(- np.dot(x, self.w)))
         y_pred[y_pred < threshold] = -1
         y_pred[y_pred >= threshold] = 1
-        return  y_pred
+        return y_pred
