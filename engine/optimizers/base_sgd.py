@@ -8,7 +8,7 @@ class BaseSGD(BaseOptimizer):
         self.loss = loss
         self.increment = increment
 
-    def optimize(self, x: np.ndarray, y: np.ndarray, epochs=100, save_hist: bool=False):
+    def optimize(self, x: np.ndarray, y: np.ndarray, epochs=5, save_hist: bool=False):
         if len(x.shape) != 2:
             raise Exception("x must have ndim==2")
 

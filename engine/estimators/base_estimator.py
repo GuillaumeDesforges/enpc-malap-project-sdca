@@ -4,7 +4,7 @@ import numpy as np
 
 class BaseEstimator(abc.ABC):
     @abc.abstractmethod
-    def fit(self, x: np.ndarray, y: np.ndarray):
+    def fit(self, x: np.ndarray, y: np.ndarray, save_hist: bool=False):
         pass
 
     @abc.abstractmethod
