@@ -16,4 +16,3 @@ class BaseEstimator(abc.ABC):
         errors = y_true != y_pred
         error_rate = np.sum(errors)/len(errors)
         return 1 - error_rate
-
