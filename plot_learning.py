@@ -17,17 +17,20 @@ def plot_learning(x, y):
     sgd_hist_w = np.array(sgd_hist_w)
 
     # verify result
+    plt.figure()
     plt.title("Estimator regions")
     malaptools.plot_frontiere(x, sgd_clf.predict)
     malaptools.plot_data(x, y)
     plt.show()
 
     # plot histories
+    plt.figure()
     plt.title("Evolution of the weights")
     for d in range(sgd_hist_w.shape[1]):
         plt.plot(sgd_hist_w[:, d])
     plt.show()
-
+    
+    plt.figure()
     plt.title("Evolution of the loss")
     plt.plot(sgd_hist_loss)
     plt.show()
@@ -39,27 +42,32 @@ def plot_learning(x, y):
     sdca_hist_w, sdca_hist_loss, sdca_hist_alpha = sdca_clf.fit(x, y, epochs=20, save_hist=True)
     sdca_hist_w = np.array(sdca_hist_w)
     sdca_hist_alpha = np.array(sdca_hist_alpha)
-
+    
+    plt.figure()
     plt.title("Estimator regions")
     malaptools.plot_frontiere(x, sdca_clf.predict)
     malaptools.plot_data(x, y)
     plt.show()
-
+    
+    plt.figure()
     plt.title("Evolution of the weights")
     for d in range(sdca_hist_w.shape[1]):
            plt.plot(sdca_hist_w[:, d])
     plt.show()
 
+    plt.figure()
     plt.title("Evolution of the dual variables")
     for n in range(sdca_hist_alpha.shape[1]):
         plt.plot(sdca_hist_alpha[:, n])
     plt.show()
 
+    plt.figure()
     plt.title("Evolution of the loss")
     plt.plot(sdca_hist_loss)
     plt.show()
 
     # comparison
+    plt.figure()
     plt.title("Comparison of the evolution of the loss")
     plt.plot(sgd_hist_loss, label="SGD")
     plt.plot(sdca_hist_loss, label="SDCA")
