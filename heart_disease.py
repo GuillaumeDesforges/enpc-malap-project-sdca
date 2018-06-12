@@ -17,7 +17,7 @@ nomFichier = "datasets\Heart_disease\heart_disease_data.pkl"
 
 ## Global param
 
-nb_epoch = 5
+nb_epoch = 100
 
 ## Data
 
@@ -44,7 +44,7 @@ Xnorm = normalize(X)
 ## Estimators
 
 # make estimator
-sgd = LogisticSGD(c=1, eps=1e-20)
+sgd = LogisticSGD(c=1, eps=1e-6)
 sgd_clf = LogisticRegression(optimizer=sgd)
 
 sdca = LogisticSDCA(c=1)
@@ -61,13 +61,11 @@ if True:
     '''plt.figure()
     plt.title("Evolution of the weights : SGD")
     for d in range(sgd_hist_w.shape[1]):
-        plt.plot(sgd_hist_w[:, d])
-    plt.show()'''
+        plt.plot(sgd_hist_w[:, d])'''
     
     plt.figure()
     plt.title("Evolution of the loss : SGD")
     plt.plot(sgd_hist_loss)
-    plt.show()
     
     # final accuracy
     print("final accuracy SGD :", sgd_clf.score_accuracy(Xnorm, Y))
@@ -83,18 +81,15 @@ if True:
     plt.title("Evolution of the weights : SDCA")
     for d in range(sdca_hist_w.shape[1]):
         plt.plot(sdca_hist_w[:, d])
-    plt.show()
     
     plt.figure()
     plt.title("Evolution of the dual variables : SDCA")
     for n in range(sdca_hist_alpha.shape[1]):
-        plt.plot(sdca_hist_alpha[:, n])
-    plt.show()'''
+        plt.plot(sdca_hist_alpha[:, n])'''
     
     plt.figure()
     plt.title("Evolution of the loss : SDCA")
     plt.plot(sdca_hist_loss)
-    plt.show()
     
     # final accuracy
     print("final accuracy SDCA :", sdca_clf.score_accuracy(Xnorm, Y))
@@ -103,9 +98,13 @@ if True:
 # smoothed loss : without oscillations of convergence
 
 def calc_smooth(liste):
-    return [min(liste[:i]) for i in range(1, len(liste))]
+    list_smooth = np.zeros(len(liste))
+    list_smooth[0] = liste[0]
+    for i in range(1, len(liste)):
+        list_smooth[i] = min(list_smooth[i-1], liste[i])
+    return list_smooth
 
-if False:
+if True:
     smooth_sgd_hist_loss = calc_smooth(sgd_hist_loss)
     smooth_sdca_hist_loss = calc_smooth(sdca_hist_loss)
     
@@ -116,7 +115,6 @@ if False:
     plt.xlabel("iteration")
     plt.ylabel("loss")
     plt.legend()
-    plt.show()
 
 def proj_degr2(X):
     N, dim = X.shape
@@ -137,11 +135,18 @@ if False:
     sgd_hist_w_proj, sgd_hist_loss_proj = sgd_clf.fit(X_proj_norm, Y, epochs=1, save_hist=True)
     sgd_hist_w_proj = np.array(sgd_hist_w_proj)
     
+    sdca_hist_w_proj, sdca_hist_loss_proj, sdca_hist_alpha_proj = sdca_clf.fit(X_proj_norm, Y, epochs=1, save_hist=True)
+    sdca_hist_w_proj = np.array(sdca_hist_w_proj)
+    
     smooth_sgd_hist_loss_proj = calc_smooth(sgd_hist_loss_proj)
+    smooth_sdca_hist_loss_proj = calc_smooth(sdca_hist_loss_proj)
     plt.figure()
     plt.plot(sgd_hist_loss_proj, c='b', label="SGD")
+    plt.plot(sdca_hist_loss_proj, c='g', label="SDCA")
     plt.title("Evolution of the loss with iterations : projection degree 2")
     plt.xlabel("iteration")
     plt.ylabel("loss")
     plt.legend()
-    plt.show()
+
+
+plt.show()

@@ -4,7 +4,10 @@ from engine.optimizers.base_sgd import BaseSGD
 
 def logistic_loss(x, y, w, c):
     #z = c * np.sum([np.log(1 + np.exp(-y[i] * np.dot(w.T, x[i]))) for i in range(x.shape[0])]) + np.dot(w, w) / 2
-    z = c * np.sum(np.log(1 + np.exp(-y * np.dot(x, w)))) + np.dot(w, w)/2
+    seuil = 100
+    a = - y * np.dot(x, w)
+    b = np.where(a < seuil, np.log(1 + np.exp(a)), a)
+    z = c * np.sum(b) + np.dot(w, w)/2
     return z
 
 
