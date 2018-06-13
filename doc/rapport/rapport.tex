@@ -59,38 +59,54 @@ Then we study computational performances of the method by trying to apply SDCA o
 Finally we conclude on SDCA strengths and weaknesses.
 
 \newpage
+\section{The dual problem of the logistic regression}
 
-\section{Example of the logistic regression}
+In this paper, we study the SDCA algorithm on several problems.
+The logistic regression is an interesting problem for an introduction.
+The multiclass logistic regression, with the cross entropy loss, is a generalization of the binary logistic regression that requires more work, so for now we stick to the binary problem which is interesting enough to present our work.
 
+We use the following usual notations :
+\begin{itemize}
+	\item[] $X \in \mathbf{X} = \mathbb{R}^p$ the random variable for the description space;
+	\item[] $Y \in \mathbf{Y} = \{0,1\}$ the random variable for the label.
+\end{itemize}
 
-In order to understand fully the method behind this paper, let's take an example with the logistic regression.
-We will consider logistic regression only for binary classification.
-We use the following usual notations : $X \in \mathbf{X} = \mathbb{R}^p$ the random variable for the description space, and $Y \in \mathbf{Y} = \{0,1\}$ the random variable for the label.
 We recall that the model is the following :
-$$ \frac{\mathbb{P}(y=1 | X=x)}{\mathbb{P}(y=-1 |X=x)} = w^T x, \quad w \in \mathbb{R}^p $$
+\begin{equation}
+	\frac{\mathbb{P}(y=1 | X=x)}{\mathbb{P}(y=-1 |X=x)} = w^T x, \quad w \in \mathbb{R}^p
+\end{equation}
 
+We want to find $w$ so that it maximizes the likelihood, or log-likelihood, with a term of regularization:
+\begin{equation}
+	\min_w C \sum_i \log(1 + e^{-y_iw^Tx_i)}  + \frac{1}{2} w^Tw
+\end{equation}
 
-Then, we want to fin $w$ so that it maximizes the likelihood, or log-likelihood, with a term of regularization:
-$$ \min_w C \sum_i ln(1 + e^{-y_iw^Tx_i)}  + \frac{1}{2} w^Tw$$
 In order to get the dual problem, we rewrite it with an artificial constraint $z_i = e^{-y_iw^Tx_i}$, and we have the following lagrangian :
-$$ \mathcal{L}(w, z, \alpha) = \sum_i (C ln(1+z_i) + \alpha_i z_i) - \sum_i \alpha_i e^{-y_iw^Tx_i} + \frac{1}{2}w^Tw $$
-
+\begin{equation}
+	\mathcal{L}(w, z, \alpha) = \sum_i (C \log(1+z_i) + \alpha_i z_i) - \sum_i \alpha_i e^{-y_iw^Tx_i} + \frac{1}{2}w^Tw 
+\end{equation}
 
 We will note $w^*$ and $z^*$ the variables solution of the optimization problem
-$$ \min_{w, z} \mathcal{L}(w, z, \alpha) = \mathcal{L}(w^*, z^*, \alpha) = \psi(\alpha) $$
-Where,
-$$ w^* = \sum_i \alpha_i y_i x_i $$
+\begin{equation}
+	\min_{w, z} \mathcal{L}(w, z, \alpha) = \mathcal{L}(w^*, z^*, \alpha) = \psi(\alpha) 
+\end{equation}
 
-In fact, it leads to the following dual problem :
-$$ \max_{\alpha} \sum_{i \in I} (-\alpha_i ln(\alpha_i) - (C-\alpha_i) ln(C - \alpha_i)) - \frac{1}{2} \alpha^TQ\alpha $$
-$$ s.t. \quad I = \{i | \quad 0 < \alpha_i < C \}$$
-$$0 \leq \alpha_i \leq C$$
+Where, $w^* = \sum_i \alpha_i y_i x_i$.
+
+It leads to the following dual problem :
+\begin{equation}
+	\begin{array}{cl}
+		     &\max_{\alpha} \sum_{i \in I} (-\alpha_i \log(\alpha_i) - (C-\alpha_i) \log(C - \alpha_i)) - \frac{1}{2} \alpha^TQ\alpha\\
+		s.t. &I = \{i,\ 0 < \alpha_i < C \}\\
+		     &0 \leq \alpha_i \leq C
+	\end{array}
+\end{equation}
 
 We used the notation $Q = (Q_{ij})_{i,j}$ where $Q_{ij} = y_i x_i^T x_j y_j$
 
+Now that we have the dual problem, we need to solve a maximize it.
+To do so, we will use in the coordinate ascent method, which consist in optimizing the objective function coordinate by coordinate (or with groups of coordinates).
 
-Now we got the dual problem, we need to solve a maximization problem.
-To do so, we will use in this paper the coordinate ascent method, which consist in optimizing the objective function coordinate by coordinate (or with groups of coordinates). 
 
 \section{Methods}
 %3 pages
@@ -199,11 +215,12 @@ Under these assumptions, we have the following theorem:
 Assume that $\forall i, \phi_i$ is $L$-Lipschitz (resp.
 $(1/\gamma)$-smooth).
 To obtain an expected duality gap of $\mathbb{E}[P(\overline{w})-D(\overline{\alpha})] \leq \epsilon_P$, it suffices to have a total number of iterations of
-$$T \geq n + \max\left(0, \left\lceil n \log \left(\dfrac{\lambda n}{2 L^2} \right) \right\rceil \right) + \dfrac{20 L^2}{\lambda \epsilon_P} \quad \left( \text{resp. } T > \left(n + \dfrac{1}{\lambda \gamma} \right) \log \left[ \dfrac{1}{(T-T_0)\epsilon_P} \left(n + \dfrac{1}{\lambda \gamma} \right) \right] \right)$$ 
+\begin{equation}
+	T \geq n + \max\left(0, \left\lceil n \log \left(\dfrac{\lambda n}{2 L^2} \right) \right\rceil \right) + \dfrac{20 L^2}{\lambda \epsilon_P} \quad \left( \text{resp. } T > \left(n + \dfrac{1}{\lambda \gamma} \right) \log \left[ \dfrac{1}{(T-T_0)\epsilon_P} \left(n + \dfrac{1}{\lambda \gamma} \right) \right] \right)
+\end{equation}
 
 
 \newpage
-
 \section{Conclusion}
 %1/2 page
 (a) summary \\
