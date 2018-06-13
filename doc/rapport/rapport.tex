@@ -36,36 +36,44 @@
 
 % Context
 \hspace{2em}
-In machine learning, the process of fitting an algorithm often requires to solve some optimization problem, more or less complex.
-Most of the time, it consists in minimizing an empirical risk (the case we have studied in class), but there exists other ways of learning.
-The difficulty resides in the fact that those optimization problems are often very complex.
-Their solutions are often neither exact, nor a solution that we can obtain with a closed form.
-In addition, in real use cases the computation of the solution is often hard.
+In machine learning, the process of fitting a model to the data requires to solve an optimization problem.
+The difficulty resides in the fact that this optimization quickly becomes very complex when dealing with real problems.
+The Stochastic Coordinate Descent (SGD) is a very popular algorithm to solve those problems because it has good convergence guaranties.
+Yet, the SGD does not have a good stopping criteria, and its solutions are often not accurate enough.
 
-% General problem sutdied, general methodology
+% General problem studied, general methodology
 \hspace{2em}
-Because the problems we work with have a great amount of data and dimensions, it can be interesting to have a look on the dual problem.
-In fact, looking at the dual problem can lead to easier problems to solve, with interesting solving methods different from the ones used to solve the primal problems.
-Moreover, if we work in a a case where we have strong duality it will lead to the optimal solution of the primal problem.
+The Stochastic Dual Coordinate Ascent tries to solves the optimization problem by solving its dual problem.
+Instead of optimizing the weights, we optimize a dual variable from which we can compute the weights and thus solve the former.
+This method can give good results for specific problems : for instance, solving the dual problem of the SVM has proven to be effective and to give interesting results, with a linear convergence in some cases.
+
 % Focus and goal of the work presented
-In this paper, we will study this approach to obtain another optimization problem, with a different structure from the primal one.
-Therefore, the goal of the project will be to study and implement the method of stochastic coordinate ascent (descent is equivalent but we will stick to the litterature) to solve the dual problem.
+\hspace{2em}
+In this report, we compile the key theoretical points necessary to have a global understanding of the SDCA.
 
 % Structure of the report
 \hspace{2em}
-First we introduce the general forms of the machine learning problems we want to apply SDCA on.
-Then we develop on how we get to the dual form, and how it can be solved.
-Then we try to compare the theoretical advantages of solving dual problem instead of the primal one, and make sure we have guarantees over the strong duality.
+First we introduce the general forms of the machine learning problems we want to use SDCA on and how we get to the dual form.
+Then we introduce the duality gap.
 Then we study computational performances of the method by trying to apply SDCA on concret problems.
 Finally we conclude on SDCA strengths and weaknesses.
 
+\paragraph{Note} \textit{We especially added experimentations since the presentation of our poster.}
 
 \newpage
 %=================================================================================================
-\section{The dual problem of the logistic regression}
+\section{Methods}
+% 3 pages
+% (a) [DONE] ...... specific problem studied
+% (b) [TODO?] ..... related work
+% (c) [DONE] ...... model, main idea
+% (d) [IRRELEVANT]  specific methodology
+% (e) [DONE] ...... algorithms
 
-In this paper, we study the SDCA algorithm on several problems.
-The logistic regression is an interesting problem for an introduction.
+\subsection{Problems studied}
+
+In this report, we study the SDCA algorithm on several machine learning problems.
+As an introduction, the logistic regression is an interesting problem.
 The multiclass logistic regression, with the cross entropy loss, is a generalization of the binary logistic regression that requires more work, so for now we stick to the binary problem which is interesting enough to present our work.
 
 We use the following usual notations :
@@ -89,7 +97,7 @@ In order to get the dual problem, we rewrite it with an artificial constraint $z
 	\mathcal{L}(w, z, \alpha) = \sum_i (C \log(1+z_i) + \alpha_i z_i) - \sum_i \alpha_i e^{-y_iw^Tx_i} + \frac{1}{2}w^Tw 
 \end{equation}
 
-We will note $w^*$ and $z^*$ the variables solution of the optimization problem
+We note $w^*$ and $z^*$ the variables solution of the optimization problem
 \begin{equation}
 	\min_{w, z} \mathcal{L}(w, z, \alpha) = \mathcal{L}(w^*, z^*, \alpha) = \psi(\alpha) 
 \end{equation}
@@ -107,19 +115,8 @@ It leads to the following dual problem :
 
 We used the notation $Q = (Q_{ij})_{i,j}$ where $Q_{ij} = y_i x_i^T x_j y_j$
 
-Now that we have the dual problem, we need to maximize it.
-To do so, we will use in the coordinate ascent method, which consist in optimizing the objective function coordinate by coordinate (or with groups of coordinates).
 
-
-\newpage
-%=================================================================================================
-\section{The SDCA algorithm}
-% 3 pages
-% (a) specific problem studied
-% (b) related work
-% (c) model, main idea
-% (d) specific methodology
-% (e) algorithms
+\subsection{Duality Gap}
 
 Let $x_1, \dots, x_n \in \mathbb{R}^d$, $\phi_1, \dots, \phi_n$ scalar convex functions, $\lambda > 0$ regularization parameter.
 Let us focus on the following optimization problem:
@@ -131,7 +128,7 @@ Let us focus on the following optimization problem:
 with solution $w^{*} = \arg \min_{w \in \mathbb{R}^d} P(w)$.
 
 Moreover, we say that a solution $w$ is $\epsilon_P$-sub-optimal if $P(w) - P(w^{*}) \leq \epsilon_P$.
-We analyze here the required runtime to find an $\epsilon_P$-sub-optimal solution using SDCA. (détailler + haut différence entre SGD et SDCA)
+We analyze here the required runtime to find an $\epsilon_P$-sub-optimal solution using SDCA.
 
 Let $\phi_i^{*} : \mathbb{R} \rightarrow \mathbb{R}$ be the convex conjugate of $\phi_i$ : $\phi_i^{*}(u) = \max_z (zu-\phi_i(z))$.
 
@@ -144,9 +141,12 @@ with solution $\alpha^{*} = \arg \max_{a \in \mathbb{R}^n} D(\alpha)$.
 
 If we define $w(\alpha) = \frac{1}{\lambda n} \sum_{i=1}^n \alpha_ix_i$, then we have $w(\alpha^{*}) = w^{*}$, $P(w^{*}) = D(\alpha^{*})$, $\forall (w,\alpha), P(w) = D(\alpha)$ due to classic optimization results, and the duality gap $P(w(\alpha)) - P(w^{*})$.
 
-The SDCA algorithm is described below.
-$T_0$ can be chosen between $1$ to $T$, and is generally chosen equal to $T/2$.
-However, in pratice, these parameters are not required as the duality gap is used to terminate the algorithm.
+% TODO condition d'arrêt
+
+
+\subsection{The SDCA algorithm}
+
+The SDCA algorithm is as follow.
 
 \begin{algorithm}
 	\caption{Procedure SCDA with averaging option}
@@ -163,6 +163,18 @@ However, in pratice, these parameters are not required as the duality gap is use
 		\EndProcedure
 	\end{algorithmic}
 \end{algorithm}
+
+$T_0$ can be chosen between $1$ to $T$, and is generally chosen equal to $T/2$.
+However, in pratice, these parameters are not required as the duality gap is used to terminate the algorithm.
+
+
+\subsection{SDCA vs SGD}
+
+The SDCA consists in taking a coordinate, optimize the problem on that coordinate by solving a subproblem, and then update the weights.
+
+In classic stochastic gradient descent (SGD), we optimize the primal problem by looking at its gradient only for one x.
+
+In this approach, we 
 
 
 \newpage
