@@ -116,15 +116,32 @@ It leads to the following dual problem :
 
 We note $Q = (Q_{ij})_{i,j}$ where $Q_{ij} = y_i x_i^T x_j y_j$. It appears that the optimization problem is fully parametrized by the scalar products of the data.
 
-\subsection{Models}
+\subsection{A more generic form}
 
-SDCA can be computed either for $L$-Lipschitz loss functions or for $(1/\gamma)$-smooth loss functions.
+If we consider now a generic loss function $\phi$, either L-Lipschitz or ($1/\gamma$)-smooth, we can rewrite the optimization problem as follow, where P refers to primal form :
+\begin{equation}
+    \min_{w \in \mathbb{R}^d} P(w) \quad \text{ where } P(w) = \left[ \dfrac{1}{n} \sum_{i=1}^n \phi_i(w^\top x_i) + \dfrac{\lambda}{2}\norm{w}^2 \right]
+    \label{primal}
+\end{equation}
+with solution $w^{*} = \arg \min_{w \in \mathbb{R}^d} P(w)$.
 
-A function $\phi_i : \mathbb{R} \rightarrow \mathbb{R}$ is $L$-Lipschitz if $\forall a,b \in \mathbb{R}$, $\abs{\phi_i(a)-\phi_i(b)} \leq L \abs{a-b}$.
-A function $\phi_i : \mathbb{R} \rightarrow \mathbb{R}$ is $(1/\gamma)$-smooth if it is differentiable and its derivative is (1/$\gamma)$-Lipschitz.
-If $\phi_i$ is $(1/\gamma)$-smooth, then $\phi_i^{*}$ is $\gamma$-strongly convex.
+\paragraph{}
+Let's now introduce the convex conjugate, a very useful tool in the dual space. It is defined as follow $\phi_i$ : $\phi_i^{*}(u) = \max_z (zu-\phi_i(z))$. In the case $\phi_i$ is (1/$\gamma$)-smooth, its convex conjugate $\phi_i^*$ is $\gamma$-strongly convex. We are now able to have a compact notation for the dual problem :
+\begin{equation}
+    \max_{\alpha \in \mathbb{R}^n} D(\alpha) \quad \text{ where } D(\alpha) = \left[ \dfrac{1}{n} \sum_{i=1}^n -\phi_i^{*}(-\alpha_i) - \dfrac{\lambda}{2}\norm{\dfrac{1}{\lambda n}\sum_{i=1}^n \alpha_ix_i}^2 \right]
+    \label{dual}
+\end{equation}
+with solution $\alpha^{*} = \arg \max_{a \in \mathbb{R}^n} D(\alpha)$.
 
-Some loss functions used in the report are described in the table below.
+\subsection{SDCA principle}
+
+\paragraph{}
+The SDCA method starts from a remark : with standard SGD, the learning rate $\epsilon$ is not adaptative, and it can be more or less complicated to find a good one, which could provide good properties of convergence. That is why the coordinate ascent approach is interesting. Instead of ascenting in the direction of the gradient with a fixed increment, it proposes to update one coordinate to its value that maximizes the objective value. The idea is then to repeat the operation on all coordinates so that it converges to the maximum of the objective function. We can then give it stochastic properties by chosing randomly the coordinate to optimize at each iteration.
+
+\subsection{Some classical loss functions}
+
+Some loss functions used in the report are described in the table below.\\
+$\Delta \alpha_i$ is the notation we use to represent the increment to add to $\alpha_i$ (one coordinate, at a given iteration) to maximize the objective function with respect to that coordinate.
 
 \begin{center}
 	\begin{table}[H]
@@ -200,20 +217,7 @@ We have $w(\alpha^{*}) = w^{*}$, $P(w^{*}) = D(\alpha^{*})$, $\forall (w,\alpha)
 We define the duality gap : $P(w(\alpha)) - P(w^{*})$
 
 
-\subsection{Stopping time}
 
-We consider the following assumptions: $\forall i, \norm{x_i} \leq 1$, $\forall (i,a), \phi_i(a) \geq 0$ and $\forall i, \phi_i(0) \leq 1$.
-
-Under these assumptions, we have the following theorem:
-
-% reference du theoreme ?
-\paragraph{Theorem} Consider Procedure SDCA with $\alpha^{(0)} = 0$.
-Assume that $\forall i, \phi_i$ is $L$-Lipschitz (resp.
-$(1/\gamma)$-smooth).
-To obtain an expected duality gap of $\mathbb{E}[P(\overline{w})-D(\overline{\alpha})] \leq \epsilon_P$, it suffices to have a total number of iterations of
-\begin{equation}
-	T \geq n + \max\left(0, \left\lceil n \log \left(\dfrac{\lambda n}{2 L^2} \right) \right\rceil \right) + \dfrac{20 L^2}{\lambda \epsilon_P} \quad \left( \text{resp. } T > \left(n + \dfrac{1}{\lambda \gamma} \right) \log \left[ \dfrac{1}{(T-T_0)\epsilon_P} \left(n + \dfrac{1}{\lambda \gamma} \right) \right] \right)
-\end{equation}
 
 
 
@@ -239,6 +243,21 @@ The SDCA algorithm is as follow.
 
 $T_0$ can be chosen between $1$ to $T$, and is generally chosen equal to $T/2$.
 However, in pratice, these parameters are not required as the duality gap is used to terminate the algorithm.
+
+\subsection{Stopping time}
+
+We consider the following assumptions: $\forall i, \norm{x_i} \leq 1$, $\forall (i,a), \phi_i(a) \geq 0$ and $\forall i, \phi_i(0) \leq 1$.
+
+Under these assumptions, we have the following theorem:
+
+% reference du theoreme ?
+\paragraph{Theorem} Consider Procedure SDCA with $\alpha^{(0)} = 0$.
+Assume that $\forall i, \phi_i$ is $L$-Lipschitz (resp.
+$(1/\gamma)$-smooth).
+To obtain an expected duality gap of $\mathbb{E}[P(\overline{w})-D(\overline{\alpha})] \leq \epsilon_P$, it suffices to have a total number of iterations of
+\begin{equation}
+	T \geq n + \max\left(0, \left\lceil n \log \left(\dfrac{\lambda n}{2 L^2} \right) \right\rceil \right) + \dfrac{20 L^2}{\lambda \epsilon_P} \quad \left( \text{resp. } T > \left(n + \dfrac{1}{\lambda \gamma} \right) \log \left[ \dfrac{1}{(T-T_0)\epsilon_P} \left(n + \dfrac{1}{\lambda \gamma} \right) \right] \right)
+\end{equation}
 
 % TODO décrire ce que fait le SDCA
 
