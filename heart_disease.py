@@ -17,7 +17,7 @@ nomFichier = "datasets\Heart_disease\heart_disease_data.pkl"
 
 ## Global param
 
-nb_epoch = 100
+nb_epoch = 10
 
 ## Data
 
@@ -40,19 +40,19 @@ def normalize(mat):
     return z
 
 Xnorm = normalize(X)
-    
-## Estimators
 
-# make estimator
-sgd = LogisticSGD(c=1, eps=1e-6)
-sgd_clf = LogisticRegression(optimizer=sgd)
 
-sdca = LogisticSDCA(c=1)
-sdca_clf = LogisticRegression(optimizer=sdca)
 
 ## Training
 
-if True:
+if False:
+    # make estimator
+    sgd = LogisticSGD(c=1, eps=1e-6)
+    sgd_clf = LogisticRegression(optimizer=sgd)
+    
+    sdca = LogisticSDCA(c=1)
+    sdca_clf = LogisticRegression(optimizer=sdca)
+    
     # train estimator with history
     sgd_hist_w, sgd_hist_loss = sgd_clf.fit(Xnorm, Y, epochs=nb_epoch, save_hist=True)
     sgd_hist_w = np.array(sgd_hist_w)
@@ -104,7 +104,7 @@ def calc_smooth(liste):
         list_smooth[i] = min(list_smooth[i-1], liste[i])
     return list_smooth
 
-if True:
+if False:
     smooth_sgd_hist_loss = calc_smooth(sgd_hist_loss)
     smooth_sdca_hist_loss = calc_smooth(sdca_hist_loss)
     
@@ -118,31 +118,48 @@ if True:
 
 def proj_degr2(X):
     N, dim = X.shape
-    Z = np.zeros((N, dim**2))
+    new_dim = int(dim*(dim+3)/2)
+    Z = np.zeros((N, new_dim))
     # xi * xj
     k = 0
     for i in range(dim):
-        for j in range(i, dim):
+        Z[:,k] = X[:,i]
+        Z[:,k+1] = np.multiply(X[:,i], X[:,i])
+        k += 2
+        for j in range(i+1, dim):
             Z[:,k] = np.multiply(X[:,i], X[:,j])
             k += 1
     return Z
 
-if False:
-    np.random.seed(1)
+if True:
+    # make estimator
+    sgd = LogisticSGD(c=1, eps=1e-35)
+    sgd_clf = LogisticRegression(optimizer=sgd)
+    
+    sdca = LogisticSDCA(c=1)
+    sdca_clf = LogisticRegression(optimizer=sdca)
+    
+    #np.random.seed(1)
     X_proj = proj_degr2(X)
     X_proj_norm = normalize(X_proj)
     # train estimator with history
-    sgd_hist_w_proj, sgd_hist_loss_proj = sgd_clf.fit(X_proj_norm, Y, epochs=1, save_hist=True)
+    sgd_hist_w_proj, sgd_hist_loss_proj = sgd_clf.fit(X_proj_norm, Y, epochs=nb_epoch, save_hist=True)
     sgd_hist_w_proj = np.array(sgd_hist_w_proj)
     
-    sdca_hist_w_proj, sdca_hist_loss_proj, sdca_hist_alpha_proj = sdca_clf.fit(X_proj_norm, Y, epochs=1, save_hist=True)
+    sdca_hist_w_proj, sdca_hist_loss_proj, sdca_hist_alpha_proj = sdca_clf.fit(X_proj_norm, Y, epochs=nb_epoch, save_hist=True)
     sdca_hist_w_proj = np.array(sdca_hist_w_proj)
     
     smooth_sgd_hist_loss_proj = calc_smooth(sgd_hist_loss_proj)
     smooth_sdca_hist_loss_proj = calc_smooth(sdca_hist_loss_proj)
     plt.figure()
-    plt.plot(sgd_hist_loss_proj, c='b', label="SGD")
-    plt.plot(sdca_hist_loss_proj, c='g', label="SDCA")
+    plt.plot(sgd_hist_loss_proj)
+    plt.title("Evolution of the loss SGD : projection degree 2")
+    plt.figure()
+    plt.plot(sdca_hist_loss_proj)
+    plt.title("Evolution of the loss SDCA : projection degree 2")
+    plt.figure()
+    plt.plot(smooth_sgd_hist_loss_proj, c='b', label="SGD")
+    plt.plot(smooth_sdca_hist_loss_proj, c='g', label="SDCA")
     plt.title("Evolution of the loss with iterations : projection degree 2")
     plt.xlabel("iteration")
     plt.ylabel("loss")
