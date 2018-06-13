@@ -32,7 +32,7 @@
 \maketitle
 
 %=================================================================================================
-\section{Introduction}
+\section*{Introduction}
 
 % Context
 \hspace{2em}
@@ -54,7 +54,7 @@ In this report, we compile the key theoretical points necessary to have a global
 % Structure of the report
 \hspace{2em}
 First we introduce the general forms of the machine learning problems we want to use SDCA on and how we get to the dual form.
-Then we introduce the duality gap.
+We introduce the duality gap and how it is useful.
 Then we study computational performances of the method by trying to apply SDCA on concret problems.
 Finally we conclude on SDCA strengths and weaknesses.
 
@@ -70,11 +70,12 @@ Finally we conclude on SDCA strengths and weaknesses.
 % (d) [IRRELEVANT]  specific methodology
 % (e) [DONE] ...... algorithms
 
-\subsection{Problems studied}
+\subsection{Dual problem}
 
-In this report, we study the SDCA algorithm on several machine learning problems.
-As an introduction, the logistic regression is an interesting problem.
-The multiclass logistic regression, with the cross entropy loss, is a generalization of the binary logistic regression that requires more work, so for now we stick to the binary problem which is interesting enough to present our work.
+Since a machine learning problem is an optimization problem, one can try to write its dual.
+
+As an example, we present a dual problem for the logistic regression.
+The multiclass logistic regression, with the cross entropy loss, is a generalization of the binary logistic regression that requires more work, so for now we stick to the binary problem which is interesting enough.
 
 We use the following usual notations :
 \begin{itemize}
@@ -113,35 +114,107 @@ It leads to the following dual problem :
 	\end{aligned}
 \end{equation}
 
-We used the notation $Q = (Q_{ij})_{i,j}$ where $Q_{ij} = y_i x_i^T x_j y_j$
+We note $Q = (Q_{ij})_{i,j}$ where $Q_{ij} = y_i x_i^T x_j y_j$
+
+\subsection{Models}
+
+SDCA can be computed either for $L$-Lipschitz loss functions or for $(1/\gamma)$-smooth loss functions.
+
+A function $\phi_i : \mathbb{R} \rightarrow \mathbb{R}$ is $L$-Lipschitz if $\forall a,b \in \mathbb{R}$, $\abs{\phi_i(a)-\phi_i(b)} \leq L \abs{a-b}$.
+A function $\phi_i : \mathbb{R} \rightarrow \mathbb{R}$ is $(1/\gamma)$-smooth if it is differentiable and its derivative is (1/$\gamma)$-Lipschitz.
+If $\phi_i$ is $(1/\gamma)$-smooth, then $\phi_i^{*}$ is $\gamma$-strongly convex.
+
+Some loss functions used in the report are described in the table below.
+
+\begin{center}
+	\begin{table}[H]
+		\centering
+
+		\begin{tabular}{|c|c|}
+			\hline
+			\textbf{Squared loss:}
+			& \textbf{Absolute deviation loss:}  \\[0.3em]
+
+			$\phi_i(a) = (a-y_i)^2$ 
+			& $\phi_i(a) = \abs{a-y_i}$ \\[0.3em]
+
+			$\phi_i^{*}(-a) = -ay_i+a^2/4$ 
+			& $\phi_i^{*}(-a) = -ay_i$, $a \in [-1,1]$ \\[0.3em]
+
+			$\Delta \alpha_i = \dfrac{y_i-x_i^\top w^{(t-1)}-0.5\alpha_i^{(t-1)}}{0.5+\norm{x_i}^2/(\lambda n))}$
+			& $\Delta \alpha_i = \max \left( 1, \min \left( 1, \dfrac{y_i-x_i^\top w^{(t-1)}}{\norm{x_i}^2/(\lambda n)} + \alpha_i^{(t-1)} \right) \right) - \alpha_i^{(t-1)}$  \\[1.3em]
+			\hline
+
+			\textbf{Log loss:}
+			& \textbf{($\gamma$-smoothed) Hinge loss:} \\[0.3em]
+
+			$\phi_i(a) = \log(1+\exp(-y_ia))$
+			& $\phi_i(a) = \max\{0,1-y_ia\}$ \\[0.3em]
+
+			$\phi_i^{*}(-a) = -ay_i\log(ay_i) + (1-ay_i)\log(1-ay_i)$
+			& $\phi_i^{*}(-a) = -ay_i + \gamma a^2/2$, $ay_i \in [0,1]$ \\[0.3em]
+
+			$\Delta \alpha_i = \dfrac{(1+\exp(x_i^\top w^{(t-1)}y_i))^{-1}y_i-\alpha_i^{(t-1)}}{\max(1,0.25+\norm{x_i}^2/(\lambda n))}$
+			& $\Delta \alpha_i = y_i \max \left( 0, \min \left( 1, \dfrac{1-x_i^\top w^{(t-1)} y_i-\gamma \alpha_i^{(t-1)}y_i}{\norm{x_i}^2/(\lambda n)+\gamma} + \alpha_i^{(t-1)} y_i \right) \right) - \alpha_i^{(t-1)}$ \\[1.3em]
+			\hline
+		\end{tabular}
+
+		\caption{Used loss functions, convex conjugates and closed form of solutions of problem (*).}
+		\label{dataset}
+	\end{table}
+\end{center}
 
 
 \subsection{Duality Gap}
 
+SDCA optimizes the dual problem, which is not the primal problem.
+This difference is called the duality gap, which we explain here.
+
 Let $x_1, \dots, x_n \in \mathbb{R}^d$, $\phi_1, \dots, \phi_n$ scalar convex functions, $\lambda > 0$ regularization parameter.
+
 Let us focus on the following optimization problem:
 
 \begin{equation}
-    \min_{w \in \mathbb{R}^d} P(w) \quad \text{ where } P(w) = \left[ \dfrac{1}{n} \sum_{i=1}^n \phi_i(w^\top x_i) + \dfrac{\lambda}{2}\norm{w}^2 \right]
-    \label{primal}
+	\min_{w \in \mathbb{R}^d} P(w) \quad \text{ where } P(w) = \left[ \dfrac{1}{n} \sum_{i=1}^n \phi_i(w^\top x_i) + \dfrac{\lambda}{2}\norm{w}^2 \right]
+	\label{primal}
 \end{equation}
 with solution $w^{*} = \arg \min_{w \in \mathbb{R}^d} P(w)$.
 
 Moreover, we say that a solution $w$ is $\epsilon_P$-sub-optimal if $P(w) - P(w^{*}) \leq \epsilon_P$.
+
 We analyze here the required runtime to find an $\epsilon_P$-sub-optimal solution using SDCA.
 
 Let $\phi_i^{*} : \mathbb{R} \rightarrow \mathbb{R}$ be the convex conjugate of $\phi_i$ : $\phi_i^{*}(u) = \max_z (zu-\phi_i(z))$.
 
 The dual problem of \eqref{primal} is defined as follows:
 \begin{equation}
-    \max_{\alpha \in \mathbb{R}^n} D(\alpha) \quad \text{ where } D(\alpha) = \left[ \dfrac{1}{n} \sum_{i=1}^n -\phi_i^{*}(-\alpha_i) - \dfrac{\lambda}{2}\norm{\dfrac{1}{\lambda n}\sum_{i=1}^n \alpha_ix_i}^2 \right]
-    \label{dual}
+	\max_{\alpha \in \mathbb{R}^n} D(\alpha) \quad \text{ where } D(\alpha) = \left[ \dfrac{1}{n} \sum_{i=1}^n -\phi_i^{*}(-\alpha_i) - \dfrac{\lambda}{2}\norm{\dfrac{1}{\lambda n}\sum_{i=1}^n \alpha_ix_i}^2 \right]
+	\label{dual}
 \end{equation}
 with solution $\alpha^{*} = \arg \max_{a \in \mathbb{R}^n} D(\alpha)$.
 
-If we define $w(\alpha) = \frac{1}{\lambda n} \sum_{i=1}^n \alpha_ix_i$, then we have $w(\alpha^{*}) = w^{*}$, $P(w^{*}) = D(\alpha^{*})$, $\forall (w,\alpha), P(w) = D(\alpha)$ due to classic optimization results, and the duality gap $P(w(\alpha)) - P(w^{*})$.
+% cette phrase ne veut rien dire, il faut la reformuler
+Let $w(\alpha) = \frac{1}{\lambda n} \sum_{i=1}^n \alpha_ix_i$.
+We have $w(\alpha^{*}) = w^{*}$, $P(w^{*}) = D(\alpha^{*})$, $\forall (w,\alpha), P(w) = D(\alpha)$ due to classic optimization results.
 
-% TODO condition d'arrêt
+We define the duality gap : $P(w(\alpha)) - P(w^{*})$
+
+
+\subsection{Stopping time}
+
+We consider the following assumptions: $\forall i, \norm{x_i} \leq 1$, $\forall (i,a), \phi_i(a) \geq 0$ and $\forall i, \phi_i(0) \leq 1$.
+
+Under these assumptions, we have the following theorem:
+
+% reference du theoreme ?
+\paragraph{Theorem} Consider Procedure SDCA with $\alpha^{(0)} = 0$.
+Assume that $\forall i, \phi_i$ is $L$-Lipschitz (resp.
+$(1/\gamma)$-smooth).
+To obtain an expected duality gap of $\mathbb{E}[P(\overline{w})-D(\overline{\alpha})] \leq \epsilon_P$, it suffices to have a total number of iterations of
+\begin{equation}
+	T \geq n + \max\left(0, \left\lceil n \log \left(\dfrac{\lambda n}{2 L^2} \right) \right\rceil \right) + \dfrac{20 L^2}{\lambda \epsilon_P} \quad \left( \text{resp. } T > \left(n + \dfrac{1}{\lambda \gamma} \right) \log \left[ \dfrac{1}{(T-T_0)\epsilon_P} \left(n + \dfrac{1}{\lambda \gamma} \right) \right] \right)
+\end{equation}
+
 
 
 \subsection{The SDCA algorithm}
@@ -167,14 +240,12 @@ The SDCA algorithm is as follow.
 $T_0$ can be chosen between $1$ to $T$, and is generally chosen equal to $T/2$.
 However, in pratice, these parameters are not required as the duality gap is used to terminate the algorithm.
 
+% TODO décrire ce que fait le SDCA
 
 \subsection{SDCA vs SGD}
 
-The SDCA consists in taking a coordinate, optimize the problem on that coordinate by solving a subproblem, and then update the weights.
+% TODO comparer SDCA et SGD dans la théorie (si trop dur, ne pas le faire)
 
-In classic stochastic gradient descent (SGD), we optimize the primal problem by looking at its gradient only for one x.
-
-In this approach, we 
 
 
 \newpage
@@ -186,57 +257,15 @@ In this approach, we
 % (c) Factual description of the type of results reported (explanation pertaining to the Figures, tables, etc) \\
 % (d) Interpretation and discussion of the results (comparison with the baselines, advantages of each algorithm, etc) \\
 
-In this study, SDCA is computed either for $L$-Lipschitz loss functions or for $(1/\gamma)$-smooth loss functions.
-We recall that a function $\phi_i : \mathbb{R} \rightarrow \mathbb{R}$ is $L$-Lipschitz if $\forall a,b \in \mathbb{R}$, $\abs{\phi_i(a)-\phi_i(b)} \leq L \abs{a-b}$, and that a function $\phi_i : \mathbb{R} \rightarrow \mathbb{R}$ is $(1/\gamma)$-smooth if it is differentiable and its derivative is (1/$\gamma)$-Lipschitz.
-Moreover, if $\phi_i$ is $(1/\gamma)$-smooth, then $\phi_i^{*}$ is $\gamma$-strongly convex.
-The different loss functions used are described in the table below.
-
-\begin{center}
-\begin{table}[H]
-\centering
-
-{\scriptsize
-\begin{tabular}{|c|c|}
-    \hline
-    \textbf{Squared loss:}  & \textbf{Absolute deviation loss:}  \\
-    
-    $\phi_i(a) = (a-y_i)^2$ & $\phi_i(a) = \abs{a-y_i}$ \\
-    
-    $\phi_i^{*}(-a) = -ay_i+a^2/4$ & $\phi_i^{*}(-a) = -ay_i$, $a \in [-1,1]$ \\
-    
-    {\scriptsize$\Delta \alpha_i = \dfrac{y_i-x_i^\top w^{(t-1)}-0.5\alpha_i^{(t-1)}}{0.5+\norm{x_i}^2/(\lambda n))}$} & {\scriptsize$\Delta \alpha_i = \max \left( 1, \min \left( 1, \dfrac{y_i-x_i^\top w^{(t-1)}}{\norm{x_i}^2/(\lambda n)} + \alpha_i^{(t-1)} \right) \right) - \alpha_i^{(t-1)}$}  \\ \hline
-    
-    \textbf{Log loss:}  & \textbf{($\gamma$-smoothed) Hinge loss:}  \\
-    
-    $\phi_i(a) = \log(1+\exp(-y_ia))$ & $\phi_i(a) = \max\{0,1-y_ia\}$ \\
-    
-    $\phi_i^{*}(-a) = -ay_i\log(ay_i) + (1-ay_i)\log(1-ay_i)$ & $\phi_i^{*}(-a) = -ay_i + \gamma a^2/2$, $ay_i \in [0,1]$ \\
-    
-    {\scriptsize$\Delta \alpha_i = \dfrac{(1+\exp(x_i^\top w^{(t-1)}y_i))^{-1}y_i-\alpha_i^{(t-1)}}{\max(1,0.25+\norm{x_i}^2/(\lambda n))}$} & {\scriptsize$\Delta \alpha_i = y_i \max \left( 0, \min \left( 1, \dfrac{1-x_i^\top w^{(t-1)} y_i-\gamma \alpha_i^{(t-1)}y_i}{\norm{x_i}^2/(\lambda n)+\gamma} + \alpha_i^{(t-1)} y_i \right) \right) - \alpha_i^{(t-1)}$} \\ \hline
-    
-\end{tabular} }
-\caption{Used loss functions, convex conjugates and closed form of solutions of problem (*).}
-\label{dataset}
-\end{table}
-\end{center}
-
-\vspace{-1cm}
-
-For the sake of simplicity, we consider the following assumptions: $\forall i, \norm{x_i} \leq 1$, $\forall (i,a), \phi_i(a) \geq 0$ and $\forall i, \phi_i(0) \leq 1$.
-Under these assumptions, we have the following theorem:
-
-\paragraph{Theorem} Consider Procedure SDCA with $\alpha^{(0)} = 0$.
-Assume that $\forall i, \phi_i$ is $L$-Lipschitz (resp.
-$(1/\gamma)$-smooth).
-To obtain an expected duality gap of $\mathbb{E}[P(\overline{w})-D(\overline{\alpha})] \leq \epsilon_P$, it suffices to have a total number of iterations of
-\begin{equation}
-	T \geq n + \max\left(0, \left\lceil n \log \left(\dfrac{\lambda n}{2 L^2} \right) \right\rceil \right) + \dfrac{20 L^2}{\lambda \epsilon_P} \quad \left( \text{resp. } T > \left(n + \dfrac{1}{\lambda \gamma} \right) \log \left[ \dfrac{1}{(T-T_0)\epsilon_P} \left(n + \dfrac{1}{\lambda \gamma} \right) \right] \right)
-\end{equation}
-
+\subsection{Datasets}
+\subsection{Protocol}
+\subsection{Results}
+\subsubsection{Raw results}
+\subsubsection{Interpretations}
 
 \newpage
 %=================================================================================================
-\section{Conclusion}
+\section*{Conclusion}
 % 1/2 page
 % (a) summary \\
 % (b) main conclusions and take home messages \\
