@@ -30,8 +30,24 @@ class BaseSDCA(BaseOptimizer):
         hist_alpha = []
         hist_w = []
         hist_loss = []
+
+        print("Nombre d'itérations :", int(n*epochs))
+
+        for k in range(int(n*epochs)):
+            #print("Itération n°", k)
+            i = np.random.randint(n)
+            delta = self.increment(x[i], y[i], w, alpha[i], n)
+            alpha[i] += delta
+            w += delta*x[i] / (self.c * n)
+
+            if save_hist:
+                hist_alpha.append(np.copy(alpha))
+                hist_w.append(np.copy(w))
+                loss = self.loss(x, y, w)
+                hist_loss.append(loss)
+
         # do epochs
-        for epoch in range(epochs):
+        '''for epoch in range(epochs):
             # at each epoch we fit to each data in a random order
             index_order = np.arange(n)
             np.random.shuffle(index_order)
@@ -45,7 +61,9 @@ class BaseSDCA(BaseOptimizer):
                     hist_alpha.append(np.copy(alpha))
                     hist_w.append(np.copy(w))
                     loss = self.loss(x, y, w)
-                    hist_loss.append(loss)
+                    hist_loss.append(loss)'''
+
+
 
         if save_hist:
             return hist_w, hist_loss, hist_alpha
