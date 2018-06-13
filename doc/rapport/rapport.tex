@@ -38,7 +38,7 @@
 \hspace{2em}
 In machine learning, the process of fitting a model to the data requires to solve an optimization problem.
 The difficulty resides in the fact that this optimization quickly becomes very complex when dealing with real problems.
-The Stochastic Coordinate Descent (SGD) is a very popular algorithm to solve those problems because it has good convergence guaranties.
+The Stochastic Gradient Descent (SGD) is a very popular algorithm to solve those problems because it has good convergence guaranties.
 Yet, the SGD does not have a good stopping criteria, and its solutions are often not accurate enough.
 
 % General problem studied, general methodology
@@ -93,9 +93,9 @@ We want to find $w$ so that it maximizes the likelihood, or log-likelihood, with
 	\min_w C \sum_i \log(1 + e^{-y_iw^Tx_i)}  + \frac{1}{2} w^Tw
 \end{equation}
 
-In order to get the dual problem, we rewrite it with an artificial constraint $z_i = e^{-y_iw^Tx_i}$, and we have the following lagrangian :
+In order to get the dual problem, we rewrite it with an artificial constraint $z_i = y_iw^Tx_i$, and we have the following lagrangian :
 \begin{equation}
-	\mathcal{L}(w, z, \alpha) = \sum_i (C \log(1+z_i) + \alpha_i z_i) - \sum_i \alpha_i e^{-y_iw^Tx_i} + \frac{1}{2}w^Tw 
+	\mathcal{L}(w, z, \alpha) = \sum_i (C \log(1+z_i) + \alpha_i z_i) - \sum_i \alpha_i e^{-z_i} + \frac{1}{2}w^Tw 
 \end{equation}
 
 We note $w^*$ and $z^*$ the variables solution of the optimization problem
@@ -114,7 +114,7 @@ It leads to the following dual problem :
 	\end{aligned}
 \end{equation}
 
-We note $Q = (Q_{ij})_{i,j}$ where $Q_{ij} = y_i x_i^T x_j y_j$
+We note $Q = (Q_{ij})_{i,j}$ where $Q_{ij} = y_i x_i^T x_j y_j$. It appears that the optimization problem is fully parametrized by the scalar products of the data.
 
 \subsection{Models}
 
