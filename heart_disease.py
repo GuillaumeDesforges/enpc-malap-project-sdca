@@ -13,11 +13,13 @@ from engine.optimizers.sgd_logistic import LogisticSGD
 from engine.optimizers.sdca_square import SquareSDCA
 from engine.optimizers.sgd_square import SquareSGD
 
+from sklearn.model_selection import train_test_split
+
 nomFichier = "datasets\Heart_disease\heart_disease_data.pkl"
 
 ## Global param
 
-nb_epoch = 10
+nb_epoch = 30
 
 ## Data
 
@@ -42,15 +44,61 @@ def normalize(mat):
 Xnorm = normalize(X)
 
 
+## paramètre C par validation croisée
+
+if False:
+    X_train, X_test, y_train, y_test = train_test_split(Xnorm, Y, test_size=0.1)
+    vect_param = 10**np.linspace(-2, 4, 30)
+    
+    vect_train_accuracy_sgd = []
+    vect_train_accuracy_sdca = []
+    
+    vect_test_accuracy_sgd = []
+    vect_test_accuracy_sdca = []
+    
+    for param in vect_param:
+        # make estimator
+        sgd = LogisticSGD(c=param, eps=1e-6)
+        sgd_clf = LogisticRegression(optimizer=sgd)
+        
+        sdca = LogisticSDCA(c=param)
+        sdca_clf = LogisticRegression(optimizer=sdca)
+        
+        # train estimators without history
+        sgd_clf.fit(X_train, y_train, epochs=nb_epoch, save_hist=False)
+        sdca_clf.fit(X_train, y_train, epochs=nb_epoch, save_hist=False)
+        
+        vect_train_accuracy_sgd.append(sgd_clf.score_accuracy(X_train, y_train))
+        vect_train_accuracy_sdca.append(sdca_clf.score_accuracy(X_train, y_train))
+        
+        vect_test_accuracy_sgd.append(sgd_clf.score_accuracy(X_test, y_test))
+        vect_test_accuracy_sdca.append(sdca_clf.score_accuracy(X_test, y_test))
+    
+    plt.figure()
+    plt.plot(np.log10(vect_param), vect_train_accuracy_sgd, 'b', label="train")
+    plt.plot(np.log10(vect_param), vect_test_accuracy_sgd, 'r', label="test")
+    plt.title("Accuracy SGD")
+    plt.legend()
+    
+    plt.figure()
+    plt.plot(np.log10(vect_param), vect_train_accuracy_sdca, 'b', label="train")
+    plt.plot(np.log10(vect_param), vect_test_accuracy_sdca, 'r', label="test")
+    plt.title("Accuracy SDCA")
+    plt.legend()
+
+'''
+Bon paramètre => c=10
+'''
+    
 
 ## Training
 
 if False:
     # make estimator
-    sgd = LogisticSGD(c=1, eps=1e-6)
+    sgd = LogisticSGD(c=10, eps=1e-7)
     sgd_clf = LogisticRegression(optimizer=sgd)
     
-    sdca = LogisticSDCA(c=1)
+    sdca = LogisticSDCA(c=10)
     sdca_clf = LogisticRegression(optimizer=sdca)
     
     # train estimator with history
@@ -133,13 +181,14 @@ def proj_degr2(X):
 
 if False:
     # make estimator
-    sgd = LogisticSGD(c=1, eps=1e-35)
+    sgd = LogisticSGD(c=10, eps=1e-38)
     sgd_clf = LogisticRegression(optimizer=sgd)
     
-    sdca = LogisticSDCA(c=1)
+    sdca = LogisticSDCA(c=10)
     sdca_clf = LogisticRegression(optimizer=sdca)
     
-    #np.random.seed(1)
+    nb_epoch = 5
+    
     X_proj = proj_degr2(X)
     X_proj_norm = normalize(X_proj)
     # train estimator with history
@@ -163,6 +212,78 @@ if False:
     plt.title("Evolution of the loss with iterations : projection degree 2")
     plt.xlabel("iteration")
     plt.ylabel("loss")
+    plt.legend()
+
+
+## Gaussian projection
+
+def gaussian_kernel(x, Base_proj, h):
+    a = ((x - Base_proj)/h)**2
+    b = np.sum(a, axis=1)
+    return np.exp(-b)
+
+def gaussian_proj(data, Base_proj, h):
+    N, dim = data.shape
+    n, _ = Base_proj.shape
+    data_proj = np.zeros((N, n))
+    for i in range(N):
+        data_proj[i,:] = gaussian_kernel(data[i,:], Base_proj, h)
+    return data_proj
+
+def create_base(data, prop=0.1):
+    N, dim = data.shape
+    n = int(prop*N)
+    index = np.arange(N)
+    np.random.shuffle(index)
+    return data[index[:n],:]
+
+if True:
+    X_train, X_test, y_train, y_test = train_test_split(Xnorm, Y, test_size=0.1)
+    vect_param = np.linspace(0.02, 0.8, 20)
+    
+    vect_train_accuracy_sgd = []
+    vect_train_accuracy_sdca = []
+    
+    vect_test_accuracy_sgd = []
+    vect_test_accuracy_sdca = []
+    
+    h = 10**2
+    
+    for param in vect_param:
+        # make estimator
+        sgd = LogisticSGD(c=10, eps=1e-7)
+        sgd_clf = LogisticRegression(optimizer=sgd)
+        
+        sdca = LogisticSDCA(c=10)
+        sdca_clf = LogisticRegression(optimizer=sdca)
+        
+        # base of projection
+        Base_proj = create_base(X_train, prop=param)
+        X_train_proj = gaussian_proj(X_train, Base_proj, h)
+        X_test_proj = gaussian_proj(X_test, Base_proj, h)
+        
+        nb_epoch = 20
+        
+        # train estimators without history
+        sgd_clf.fit(X_train_proj, y_train, epochs=nb_epoch, save_hist=False)
+        sdca_clf.fit(X_train_proj, y_train, epochs=nb_epoch, save_hist=False)
+        
+        vect_train_accuracy_sgd.append(sgd_clf.score_accuracy(X_train_proj, y_train))
+        vect_train_accuracy_sdca.append(sdca_clf.score_accuracy(X_train_proj, y_train))
+        
+        vect_test_accuracy_sgd.append(sgd_clf.score_accuracy(X_test_proj, y_test))
+        vect_test_accuracy_sdca.append(sdca_clf.score_accuracy(X_test_proj, y_test))
+    
+    plt.figure()
+    plt.plot(vect_param, vect_train_accuracy_sgd, 'b', label="train")
+    plt.plot(vect_param, vect_test_accuracy_sgd, 'r', label="test")
+    plt.title("Accuracy SGD")
+    plt.legend()
+    
+    plt.figure()
+    plt.plot(vect_param, vect_train_accuracy_sdca, 'b', label="train")
+    plt.plot(vect_param, vect_test_accuracy_sdca, 'r', label="test")
+    plt.title("Accuracy SDCA")
     plt.legend()
 
 
