@@ -36,7 +36,7 @@ def plot_learning(x, y, chosen_sgd=LogisticSGD(c=1, eps=1e-3), chosen_sdca=Logis
             plt.plot(sgd_hist_loss)
             plt.show()
 
-            # verify resultd783b05f493dbfb35511a7e543e67cd8e02eb2aa
+            # verify result
             if is_malaptool:
                 plt.figure()
                 plt.title("Estimator regions")
@@ -86,27 +86,3 @@ def plot_learning(x, y, chosen_sgd=LogisticSGD(c=1, eps=1e-3), chosen_sdca=Logis
         plt.plot(sdca_hist_loss, label="SDCA")
         plt.legend()
         plt.show()
-
-
-def main():
-    # x, y = data_gen.gen_circle_data(n1=100, n2=100, r1=3, r2=1)
-    # x, y = data_gen.gen_gaussian_data(n1=100, n2=100)
-    x, y = data_sets.load_sklearn_dataset(data_set_name="lfw", n=1000)
-
-    plot_learning(x, y, chosen_sgd=LogisticSGD(c=0.1, eps=1e-3), chosen_sdca=LogisticSDCA(c=0.1), nb_epochs=1,
-                  comp_sgd=True, comp_sdca=True, is_malaptool=False)
-    '''plot_learning(x, y, chosen_sgd=LogisticSGD(c=1, eps=1e-3), chosen_sdca=LogisticSDCA(c=1), nb_epochs=1,
-                  comp_sgd=True, comp_sdca=True, is_malaptool=False)
-    plot_learning(x, y, chosen_sgd=LogisticSGD(c=10, eps=1e-3), chosen_sdca=LogisticSDCA(c=10), nb_epochs=1,
-                  comp_sgd=True, comp_sdca=True, is_malaptool=False)'''
-
-    '''plot_learning(x, y, chosen_sgd=SquareSGD(c=0.1, eps=1e-3), chosen_sdca=SquareSDCA(c=0.1), nb_epochs=1,
-                  comp_sgd=True, comp_sdca=True, is_malaptool=False)
-    plot_learning(x, y, chosen_sgd=SquareSGD(c=1, eps=1e-3), chosen_sdca=SquareSDCA(c=1), nb_epochs=1,
-                  comp_sgd=True, comp_sdca=True, is_malaptool=False)
-    plot_learning(x, y, chosen_sgd=SquareSGD(c=10, eps=1e-3), chosen_sdca=SquareSDCA(c=10), nb_epochs=1,
-                  comp_sgd=True, comp_sdca=True, is_malaptool=False)'''
-
-
-if __name__ == '__main__':
-    main()

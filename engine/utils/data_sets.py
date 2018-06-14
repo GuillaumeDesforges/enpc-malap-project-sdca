@@ -28,9 +28,20 @@ def load_sklearn_dataset(data_set_name="covtype", n=1000, d=10):
         return X, y
 
 
-def load_adults_dataset():
-    df = pd.read_csv('datasets/Adults/adult.data.txt', )
-    # TODO categorical
+ADULT_COLUMNS_CATEGORICAL = ["workclass", "education", "marital-status", "occupation", "relationship", "race", "sex",
+                             "native-country", "salary"]
 
-    x = df.pop('salary')
-    y = df['salary'].values
+
+def load_adults_dataset():
+    df = pd.read_csv('datasets/Adults/adult.data.txt')
+
+    for column in ADULT_COLUMNS_CATEGORICAL:
+        # set as categories
+        df[column] = pd.Categorical(df[column])
+        # get codes
+        df[column] = df[column].cat.codes
+
+    y = df.pop('salary').values * 2 - 1
+    x = df.values
+
+    return x, y
