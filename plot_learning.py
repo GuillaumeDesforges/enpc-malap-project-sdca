@@ -91,7 +91,7 @@ def plot_learning(x, y, chosen_sgd=LogisticSGD(c=1, eps=1e-3), chosen_sdca=Logis
 def main():
     # x, y = data_gen.gen_circle_data(n1=100, n2=100, r1=3, r2=1)
     # x, y = data_gen.gen_gaussian_data(n1=100, n2=100)
-    x, y = data_sets.real_data_set(data_set_name="lfw", n=1000)
+    x, y = data_sets.load_sklearn_dataset(data_set_name="lfw", n=1000)
 
     plot_learning(x, y, chosen_sgd=LogisticSGD(c=0.1, eps=1e-3), chosen_sdca=LogisticSDCA(c=0.1), nb_epochs=1,
                   comp_sgd=True, comp_sdca=True, is_malaptool=False)

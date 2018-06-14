@@ -1,8 +1,9 @@
 from sklearn.datasets import fetch_covtype, fetch_rcv1, fetch_lfw_people
 from sklearn.preprocessing import scale, normalize, MinMaxScaler
-import numpy as np
+import pandas as pd
 
-def real_data_set(data_set_name="covtype", n=1000, d=10):
+
+def load_sklearn_dataset(data_set_name="covtype", n=1000, d=10):
     if data_set_name == "covtype":
         covtype = fetch_covtype()
         X = normalize(covtype.data[:n])
@@ -25,3 +26,11 @@ def real_data_set(data_set_name="covtype", n=1000, d=10):
 
         y = lfw.target[:n]
         return X, y
+
+
+def load_adults_dataset():
+    df = pd.read_csv('datasets/Adults/adult.data.txt', )
+    # TODO categorical
+
+    x = df.pop('salary')
+    y = df['salary'].values
