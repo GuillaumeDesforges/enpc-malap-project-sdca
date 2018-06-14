@@ -131,7 +131,7 @@ def proj_degr2(X):
             k += 1
     return Z
 
-if True:
+if False:
     # make estimator
     sgd = LogisticSGD(c=1, eps=1e-35)
     sgd_clf = LogisticRegression(optimizer=sgd)
