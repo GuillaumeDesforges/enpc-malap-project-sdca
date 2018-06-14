@@ -14,6 +14,9 @@
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
 
+% url
+\usepackage{hyperref}
+
 % metadata
 \title{Stochastic Dual Coordinate Descent}
 \author{Guillaume Desforges \& Michaël Karpe \& Matthieu Roux}
@@ -65,7 +68,6 @@ Finally we conclude on SDCA strengths and weaknesses.
 \section{Methods}
 % 3 pages
 % (a) [DONE] ...... specific problem studied
-% (b) [TODO?] ..... related work
 % (c) [DONE] ...... model, main idea
 % (d) [IRRELEVANT]  specific methodology
 % (e) [DONE] ...... algorithms
@@ -238,11 +240,41 @@ However, the SGD approach has several disadvantages:
 % (c) Factual description of the type of results reported (explanation pertaining to the Figures, tables, etc) \\
 % (d) Interpretation and discussion of the results (comparison with the baselines, advantages of each algorithm, etc) \\
 
+\subsection{Implementation}
+
+The experiments in this report were done with our own implementation, available on GitHub :
+
+\url{ https://github.com/GuillaumeDesforges/enpc-malap-project-sdca }
+
+We implemented :
+
+\begin{itemize}
+	\item Logistic regression estimators that can use an \texttt{Optimizer} object
+	\item SGD optimizer
+	\item SDCA optimizer
+	\item projections (polynomial and gaussian)
+	\item some data utilities
+\end{itemize}
+
 \subsection{Datasets}
+
+We used our implementation on :
+
+\begin{itemize}
+	\item Heart Deseases : \url{https://archive.ics.uci.edu/ml/datasets/Arrhythmia}
+\end{itemize}
+
 \subsection{Protocol}
+
+We took the raw datasets as input and fit an estimator thanks to either SGD or SDCA optimizer, and compared the primal objective function during learning.
+
+The hyperparameters were fixed to standart values.
+
 \subsection{Results}
-\subsubsection{Raw results}
-\subsubsection{Interpretations}
+
+% TODO put figures (raw results) here
+
+% TODO comment raw results
 
 \newpage
 %=================================================================================================
@@ -252,11 +284,15 @@ However, the SGD approach has several disadvantages:
 % (b) main conclusions and take home messages \\
 % (c) Remaining questions/ future directions (only if relevant) \\
 
-
 \newpage
 %=================================================================================================
-\appendix
+\section*{References}
 
+% TODO references
+
+\newpage
+\appendix
+%=================================================================================================
 \section{Losses used}
 \label{appendix-losses}
 
