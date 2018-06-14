@@ -1,6 +1,7 @@
 from sklearn.datasets import fetch_covtype, fetch_rcv1, fetch_lfw_people
 from sklearn.preprocessing import scale, normalize, MinMaxScaler
 import pandas as pd
+import numpy as np
 
 
 def load_sklearn_dataset(data_set_name="covtype", n=1000, d=10):

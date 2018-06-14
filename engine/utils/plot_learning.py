@@ -1,23 +1,25 @@
-import numpy as np
+from typing import Callable
+
 import matplotlib.pyplot as plt
-import engine.utils.data_gen as data_gen
-import engine.utils.data_sets as data_sets
+import numpy as np
+
 import engine.utils.malaptools as malaptools
-
-
 from engine.estimators.logistic_regression import LogisticRegression
 from engine.optimizers.sdca_logistic import LogisticSDCA
 from engine.optimizers.sgd_logistic import LogisticSGD
-from engine.optimizers.sdca_square import SquareSDCA
-from engine.optimizers.sgd_square import SquareSGD
+from engine.utils import projections
+
+DEFAULT_SGD = LogisticSGD(c=1, eps=1e-3)
+DEFAULT_SDCA = LogisticSDCA(c=1)
 
 
-def plot_learning(x, y, chosen_sgd=LogisticSGD(c=1, eps=1e-3), chosen_sdca=LogisticSDCA(c=1), nb_epochs=1,
-                  comp_sgd=True, comp_sdca=True, is_malaptool=False, verbose_all=False):
+def plot_learning(x, y, chosen_sgd=DEFAULT_SGD, chosen_sdca=DEFAULT_SDCA, nb_epochs=1,
+                  comp_sgd=True, comp_sdca=True, is_malaptool=False, verbose_all=False,
+                  projection: Callable[[np.ndarray], np.ndarray]=projections.identity_projection):
     # make estimator
     if comp_sgd:
         sgd = chosen_sgd
-        sgd_clf = LogisticRegression(optimizer=sgd)
+        sgd_clf = LogisticRegression(optimizer=sgd, projection=projection)
 
         # train estimator with history
         sgd_hist_w, sgd_hist_loss = sgd_clf.fit(x, y, epochs=nb_epochs, save_hist=True)
@@ -47,7 +49,7 @@ def plot_learning(x, y, chosen_sgd=LogisticSGD(c=1, eps=1e-3), chosen_sdca=Logis
     # do it again with SDCA !
     if comp_sdca:
         sdca = chosen_sdca
-        sdca_clf = LogisticRegression(optimizer=sdca)
+        sdca_clf = LogisticRegression(optimizer=sdca, projection=projection)
 
         sdca_hist_w, sdca_hist_loss, sdca_hist_alpha = sdca_clf.fit(x, y, epochs=nb_epochs, save_hist=True)
         sdca_hist_w = np.array(sdca_hist_w)

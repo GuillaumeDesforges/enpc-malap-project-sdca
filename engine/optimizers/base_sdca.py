@@ -30,10 +30,14 @@ class BaseSDCA(BaseOptimizer):
         hist_alpha = []
         hist_w = []
         hist_loss = []
+        if save_hist:
+            hist_alpha.append(np.copy(alpha))
+            hist_w.append(np.copy(w))
+            loss = self.loss(x, y, w)
+            hist_loss.append(loss)
 
-        print("Nombre d'itérations :", int(n*epochs))
-
-        for k in range(int(n*epochs)):
+        iter_max = int(n*epochs)
+        for iter_k in range(iter_max):
             i = np.random.randint(n)
             delta = self.increment(x[i], y[i], w, alpha[i], n)
             alpha[i] += delta

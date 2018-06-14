@@ -25,29 +25,19 @@ class BaseSGD(BaseOptimizer):
 
         hist_w = []
         hist_loss = []
+        if save_hist:
+            hist_w.append(np.copy(w))
+            loss = self.loss(x, y, w)
+            hist_loss.append(loss)
 
-        print("Nombre d'itérations :", int(n * epochs))
-
-        for k in range(int(n*epochs)):
-            #print("Itération n°", k)
+        iter_max = int(n*epochs)
+        for iter_k in range(iter_max):
             i = np.random.randint(n)
             w += self.increment(x[i], y[i], w)
             if save_hist:
                 hist_w.append(np.copy(w))
                 loss = self.loss(x, y, w)
                 hist_loss.append(loss)
-
-        # do epochs
-        '''for epoch in range(epochs):
-            # at each epoch we fit to each data in a random order
-            index_order = np.arange(n)
-            np.random.shuffle(index_order)
-            for i in index_order:
-                w += self.increment(x[i], y[i], w)
-                if save_hist:
-                    hist_w.append(np.copy(w))
-                    loss = self.loss(x, y, w)
-                    hist_loss.append(loss)'''
 
         if save_hist:
             return hist_w, hist_loss
