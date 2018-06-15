@@ -13,6 +13,8 @@ from engine.optimizers.sgd_logistic import LogisticSGD
 from engine.optimizers.sdca_square import SquareSDCA
 from engine.optimizers.sgd_square import SquareSGD
 
+from engine.utils.normalize import Normalizer
+
 from sklearn.model_selection import train_test_split
 
 nomFichier = "datasets\Heart_disease\heart_disease_data.pkl"
@@ -32,16 +34,8 @@ with open(nomFichier, 'rb') as input:
 Y = np.where(Y == 1, 1, -1)
 
 # normalisation
-def normalize(mat):
-    N, dim = mat.shape
-    m = np.mean(mat, axis=0)
-    z = mat
-    for i in range(dim):
-        if m[i] != 0:
-            z[:,i] = mat[:,i] / m[i]
-    return z
-
-Xnorm = normalize(X)
+normalizer = Normalizer(X)
+Xnorm = normalizer.normalize(X)
 
 
 ## paramètre C par validation croisée
@@ -237,7 +231,7 @@ def create_base(data, prop=0.1):
     np.random.shuffle(index)
     return data[index[:n],:]
 
-if True:
+if False:
     X_train, X_test, y_train, y_test = train_test_split(Xnorm, Y, test_size=0.1)
     vect_param = np.linspace(0.02, 0.8, 20)
     

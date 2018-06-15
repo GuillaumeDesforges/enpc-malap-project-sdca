@@ -7,4 +7,4 @@ class Normalizer:
         self.std = x.std(axis=0)
 
     def normalize(self, x):
-        return (x - self.means) / self.std
+        return (x - self.means) / (self.std + 10**-20)
