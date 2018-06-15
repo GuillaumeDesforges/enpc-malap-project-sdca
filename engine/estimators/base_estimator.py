@@ -17,7 +17,6 @@ class BaseEstimator(abc.ABC):
         pass
 
     def score_accuracy(self, x: np.ndarray, y_true: np.ndarray):
-        x = self.projection(x)
         y_pred = self.predict(x)
         errors = y_true != y_pred
         error_rate = np.sum(errors)/len(errors)

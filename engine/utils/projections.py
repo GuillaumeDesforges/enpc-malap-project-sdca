@@ -20,6 +20,7 @@ def build_polynomial_projection(degree: int) -> Callable[[np.ndarray], np.ndarra
             if sum(superscripts) > degree:
                 continue
             polys.append(np.prod([x[:, dim]**superscripts[dim] for dim in range(d)], axis=0))
+
         return np.stack(polys, axis=-1)
 
     return polynomial_projection
