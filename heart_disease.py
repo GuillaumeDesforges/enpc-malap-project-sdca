@@ -52,9 +52,8 @@ def get_hist_accuracy(x, y, hist_w, estimator):
 
 ## paramètre C par validation croisée
 
-if False:
-    X_train, X_test, y_train, y_test = train_test_split(Xnorm, Y, test_size=0.15)
-    vect_param = 10**np.linspace(-4, 5, 70)
+def eval_C(data, labels, vect_param, nb_epoch, eps_base=10**-6):
+    X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.15)
     
     vect_train_accuracy_sgd = []
     vect_train_accuracy_sdca = []
@@ -67,7 +66,7 @@ if False:
     
     for param in vect_param:
         # make estimator
-        sgd = LogisticSGD(c=param, eps=1e-6)
+        sgd = LogisticSGD(c=param, eps=eps_base)
         sgd_clf = LogisticRegression(optimizer=sgd, projection=chosen_proj)
         
         sdca = LogisticSDCA(c=param)
@@ -84,20 +83,25 @@ if False:
         vect_test_accuracy_sdca.append(sdca_clf.score_accuracy(X_test, y_test))
     
     plt.figure()
-    plt.plot(np.log10(vect_param), vect_train_accuracy_sgd, 'b', label="train")
-    plt.plot(np.log10(vect_param), vect_test_accuracy_sgd, 'r', label="test")
-    plt.title("Accuracy SGD")
-    plt.xlabel("log(c)")
-    plt.ylabel("accuracy")
+    plt.semilogx(vect_param, vect_train_accuracy_sgd, 'b', label="train")
+    plt.semilogx(vect_param, vect_test_accuracy_sgd, 'r', label="test")
+    plt.title("SGD accuracy vs. hyperparameter C")
+    plt.xlabel("C")
+    plt.ylabel("Accuracy")
     plt.legend()
     
     plt.figure()
     plt.plot(np.log10(vect_param), vect_train_accuracy_sdca, 'b', label="train")
     plt.plot(np.log10(vect_param), vect_test_accuracy_sdca, 'r', label="test")
-    plt.title("Accuracy SDCA")
-    plt.xlabel("log(c)")
-    plt.ylabel("accuracy")
+    plt.title("SDCA accuracy vs. hyperparameter C")
+    plt.xlabel("C")
+    plt.ylabel("Accuracy")
     plt.legend()
+
+if False:
+    vect_C = 10**np.linspace(-4, 5, 70)
+    nb_epoch = 30
+    eval_C(Xnorm, Y, vect_C, nb_epoch)
 
 '''
 Bon paramètre :
@@ -109,9 +113,8 @@ c_sdca = 10**-1
 
 ## Paramètre eps pour SGD par validation croisée
 
-if False:
-    X_train, X_test, y_train, y_test = train_test_split(Xnorm, Y, test_size=0.15)
-    vect_param = 10**np.linspace(-10, 0, 70)
+def eval_eps(data, labels, vect_param, nb_epoch, param_c=10**3):
+    X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.15)
     
     vect_train_accuracy_sgd = []
     
@@ -122,7 +125,7 @@ if False:
     
     for param in vect_param:
         # make estimator
-        sgd = LogisticSGD(c=10**3, eps=param)
+        sgd = LogisticSGD(c=param_c, eps=param)
         sgd_clf = LogisticRegression(optimizer=sgd, projection=chosen_proj)
         
         # train estimators without history
@@ -140,6 +143,12 @@ if False:
     plt.ylabel("Accuracy")
     plt.legend()
 
+
+if False:
+    vect_eps = 10**np.linspace(-10, 0, 70)
+    nb_epoch = 60
+    eval_eps(Xnorm, Y, vect_eps, nb_epoch)
+
 '''
 Best hyperparameter
 eps = 5*10**-6 for SGD
@@ -149,7 +158,7 @@ eps_sgd = 5*10**-6
 
 ## Training
 
-if True:
+if False:
     nb_epoch = 10
     
     # make estimator
@@ -231,6 +240,8 @@ if False:
     plt.ylabel("loss")
     plt.legend()
 
+## Polynomial projection : degree 2
+
 def proj_degr2(X):
     N, dim = X.shape
     new_dim = int(dim*(dim+3)/2)
@@ -245,6 +256,13 @@ def proj_degr2(X):
             Z[:,k] = np.multiply(X[:,i], X[:,j])
             k += 1
     return Z
+
+
+X_poly = proj_degr2(X)
+normalizer = Normalizer(X_poly)
+Xnorm_poly = normalizer.normalize(X_poly)
+
+
 
 if False:
     # make estimator
