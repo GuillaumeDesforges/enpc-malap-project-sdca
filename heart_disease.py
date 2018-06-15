@@ -150,6 +150,8 @@ eps_sgd = 5*10**-6
 ## Training
 
 if True:
+    nb_epoch = 10
+    
     # make estimator
     sgd = LogisticSGD(c=c_sgd, eps=eps_sgd)
     sgd_clf = LogisticRegression(optimizer=sgd)
@@ -168,8 +170,11 @@ if True:
         plt.plot(sgd_hist_w[:, d])'''
     
     plt.figure()
-    plt.title("Evolution of the loss : SGD")
     plt.plot(sgd_hist_loss)
+    plt.title("SGD loss vs. iteration\non data set Arrhythmia")
+    plt.xlabel("Iteration")
+    plt.ylabel("Loss")
+    
     
     # final accuracy
     print("final accuracy SGD :", sgd_clf.score_accuracy(Xnorm, Y))
@@ -177,26 +182,32 @@ if True:
     
     # do it again with SDCA !
     
-    sdca_hist_w, sdca_hist_loss, sdca_hist_alpha = sdca_clf.fit(Xnorm, Y, epochs=nb_epoch, save_hist=True)
+    sdca_hist_w, sdca_hist_loss = sdca_clf.fit(Xnorm, Y, epochs=nb_epoch, save_hist=True)
     sdca_hist_w = np.array(sdca_hist_w)
-    sdca_hist_alpha = np.array(sdca_hist_alpha)
     
     '''plt.figure()
     plt.title("Evolution of the weights : SDCA")
     for d in range(sdca_hist_w.shape[1]):
-        plt.plot(sdca_hist_w[:, d])
+        plt.plot(sdca_hist_w[:, d])'''
     
     plt.figure()
-    plt.title("Evolution of the dual variables : SDCA")
-    for n in range(sdca_hist_alpha.shape[1]):
-        plt.plot(sdca_hist_alpha[:, n])'''
-    
-    plt.figure()
-    plt.title("Evolution of the loss : SDCA")
+    plt.title("SDCA loss vs. iteration\non data set Arrhythmia")
+    plt.xlabel("Iteration")
+    plt.ylabel("Loss")
     plt.plot(sdca_hist_loss)
     
     # final accuracy
     print("final accuracy SDCA :", sdca_clf.score_accuracy(Xnorm, Y))
+    
+    sgd_hist_accuracy = get_hist_accuracy(Xnorm, Y, sgd_hist_w, sgd_clf)
+    sdca_hist_accuracy = get_hist_accuracy(Xnorm, Y, sdca_hist_w, sdca_clf)
+    plt.figure()
+    plt.plot(sgd_hist_accuracy, c='b', label="SGD")
+    plt.plot(sdca_hist_accuracy, c='g', label="SDCA")
+    plt.title("Accuracy vs. iteration\non data set Arrhythmia")
+    plt.xlabel("Iteration")
+    plt.ylabel("Accuracy")
+    plt.legend()
 
 
 # smoothed loss : without oscillations of convergence
@@ -251,7 +262,7 @@ if False:
     sgd_hist_w_proj, sgd_hist_loss_proj = sgd_clf.fit(X_proj_norm, Y, epochs=nb_epoch, save_hist=True)
     sgd_hist_w_proj = np.array(sgd_hist_w_proj)
     
-    sdca_hist_w_proj, sdca_hist_loss_proj, sdca_hist_alpha_proj = sdca_clf.fit(X_proj_norm, Y, epochs=nb_epoch, save_hist=True)
+    sdca_hist_w_proj, sdca_hist_loss_proj = sdca_clf.fit(X_proj_norm, Y, epochs=nb_epoch, save_hist=True)
     sdca_hist_w_proj = np.array(sdca_hist_w_proj)
     
     smooth_sgd_hist_loss_proj = calc_smooth(sgd_hist_loss_proj)
