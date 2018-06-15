@@ -51,21 +51,14 @@ def plot_learning(x, y, chosen_sgd=DEFAULT_SGD, chosen_sdca=DEFAULT_SDCA, nb_epo
         sdca = chosen_sdca
         sdca_clf = LogisticRegression(optimizer=sdca, projection=projection)
 
-        sdca_hist_w, sdca_hist_loss, sdca_hist_alpha = sdca_clf.fit(x, y, epochs=nb_epochs, save_hist=True)
+        sdca_hist_w, sdca_hist_loss = sdca_clf.fit(x, y, epochs=nb_epochs, save_hist=True)
         sdca_hist_w = np.array(sdca_hist_w)
-        sdca_hist_alpha = np.array(sdca_hist_alpha)
 
         if verbose_all:
             plt.figure()
             plt.title("Evolution of the weights")
             for d in range(sdca_hist_w.shape[1]):
                 plt.plot(sdca_hist_w[:, d])
-            plt.show()
-
-            plt.figure()
-            plt.title("Evolution of the dual variables")
-            for n in range(sdca_hist_alpha.shape[1]):
-                plt.plot(sdca_hist_alpha[:, n])
             plt.show()
 
             plt.figure()

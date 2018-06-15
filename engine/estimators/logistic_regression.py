@@ -19,7 +19,9 @@ class LogisticRegression(BaseEstimator):
             self.w = self.optimizer.optimize(x, y, epochs=epochs)
         else:
             histories = self.optimizer.optimize(x, y, epochs=epochs, save_hist=True)
-            self.w = histories[0][-1]
+            hist_w = histories[0]
+            last_w = hist_w[-1]
+            self.w = last_w
             return histories
 
     def predict(self, x: np.ndarray, threshold: int=0.5):

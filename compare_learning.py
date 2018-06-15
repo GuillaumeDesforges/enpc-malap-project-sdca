@@ -19,19 +19,26 @@ def compare_on_sklearn():
 def compare_on_adults(c=5, eps=1e-3, epochs=1):
     x, y = load_adults_dataset()
 
+    # subsample
+    n = 500
+    x = x[:n]
+    y = y[:n]
+
+    # normalize
     normalizer = Normalizer(x)
     x = normalizer.normalize(x)
 
+    # projection
     # projection = projections.build_gaussian_projection(x, sampling_rate=0.01)
     projection = projections.identity_projection
 
+    # optimizers
     estimator_sgd = LogisticSGD(c=c, eps=eps)
     estimator_sdca = LogisticSDCA(c=c)
 
+    # compute and plot
     plot_learning(x, y, chosen_sgd=estimator_sgd, chosen_sdca=estimator_sdca, nb_epochs=epochs, comp_sgd=True,
                   comp_sdca=True, is_malaptool=False, projection=projection)
-
-
 
 
 def main():
