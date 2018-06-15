@@ -17,6 +17,13 @@
 % url
 \usepackage{hyperref}
 
+% graphics
+\usepackage{graphicx}
+
+% float
+% especially to force text not to skip images
+\usepackage{float}
+
 % metadata
 \title{Stochastic Dual Coordinate Descent}
 \author{Guillaume Desforges \& Michaël Karpe \& Matthieu Roux}
@@ -291,9 +298,44 @@ Considering this analysis, and as we did not achieve to check the theorem in Sec
 
 \subsection{Choice of hyperparameters}
 
-Lorem ipsum.
+The SGD has two hyperparameters \texttt{c} and \texttt{eps} while the SDCA has only one hyperparameter \texttt{c}.
 
-Transition to be done!
+In order to compare the algorithm, we chose to select the best hyperparameters for each optimizer and for each data set.
+
+On every data set, for each hyperparameter, We computed the accuracy after a given number of epochs for a range of values, and plotted them.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[height=6cm]{figs/hyperparams/SGD_c.png}
+	\caption{Selection of the hyperparameter \texttt{c} for the SGD for the dataset Arrhythmia}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[height=6cm]{figs/hyperparams/SGD_eps.png}
+	\caption{Selection of the hyperparameter \texttt{eps} for the SGD for the dataset Arrhythmia}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[height=6cm]{figs/hyperparams/SDCA_c.png}
+	\caption{Selection of the hyperparameter \texttt{c} for the SDCA for the dataset Arrhythmia}
+\end{figure}
+
+We selected the hyper parameters values :
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|r|c|c|c|}
+		\hline
+		Data set & SGD \texttt{c} & SGD \texttt{eps} & SDCA \texttt{c}\\
+		\hline
+		Arrhythmia & 1 & 1 & 1\\
+		Adults & 1 & 1 & 1\\
+		\hline
+	\end{tabular}
+	\caption{Hyper parameter values used}
+\end{table}
 
 \subsection{Comparison between SGD and SDCA on used datasets}
 
