@@ -309,20 +309,26 @@ On every data set, for each hyperparameter, We computed the accuracy after a giv
 \begin{figure}[H]
 	\centering
 	\begin{subfigure}[t]{0.45\linewidth}
-		\includegraphics[width=\linewidth]{figs/hyperparams/arrythmia_sgd_c.png}
+		\includegraphics[width=\linewidth]{figs/hyperparams/arrhythmia_sgd_c.png}
 		\caption{\texttt{c} for the SGD for the data set Arrhythmia}
-	\end{subfigure}
-	\begin{subfigure}[t]{0.45\linewidth}
-		\includegraphics[width=\linewidth]{figs/hyperparams/arrythmia_sgd_eps.png}
-		\caption{\texttt{eps} for the SGD for the data set Arrhythmia}
-	\end{subfigure}
-	\begin{subfigure}[t]{0.45\linewidth}
-		\includegraphics[width=\linewidth]{figs/hyperparams/arrythmia_sdca_c.png}
-		\caption{\texttt{c} for the SDCA for the data set Arrhythmia}
 	\end{subfigure}
 	\begin{subfigure}[t]{0.45\linewidth}
 		\includegraphics[width=\linewidth]{figs/hyperparams/adults_sgd_c.png}
 		\caption{\texttt{c} for the SGDfor the data set Adults}
+	\end{subfigure}
+
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/hyperparams/arrhythmia_sgd_eps.png}
+		\caption{\texttt{eps} for the SGD for the data set Arrhythmia}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/hyperparams/adults_sgd_eps.png}
+		\caption{\texttt{eps} for the SGD for the data set Adults}
+	\end{subfigure}
+
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/hyperparams/arrhythmia_sdca_c.png}
+		\caption{\texttt{c} for the SDCA for the data set Arrhythmia}
 	\end{subfigure}
 	\begin{subfigure}[t]{0.45\linewidth}
 		\includegraphics[width=\linewidth]{figs/hyperparams/adults_sdca_c.png}
@@ -339,8 +345,8 @@ We selected the hyper parameters values :
 		\toprule
 		Data set & SGD \texttt{c} & SGD \texttt{eps} & SDCA \texttt{c}\\
 		\midrule
-		Arrhythmia & 1 & 1 & 1\\
-		Adults & 1 & 1 & 1\\
+		Arrhythmia & $10^3$ & $10^{-5}$ & $10^{-1}$\\
+		Adults     & $10^4$ & $5.10^{-6}$ & $5.10^{-2}$\\
 		\bottomrule
 	\end{tabular}
 	\caption{Hyper parameter values used}
@@ -348,8 +354,47 @@ We selected the hyper parameters values :
 
 \subsection{Comparison between SGD and SDCA on used data sets}
 
-Lorem ipsum.
+We fit a logistic regression model on the datasets with the hyper parameters detailed above.
 
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/loss/arrhythmia_sgd.png}
+		\caption{Arrhythima data set with SGD}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/loss/adults_sgd.png}
+		\caption{Adults data set with SGD}
+	\end{subfigure}
+
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/loss/arrhythmia_sdca.png}
+		\caption{Arrhythima data set with SDCA}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/loss/adults_sdca.png}
+		\caption{Adults data set with SDCA}
+	\end{subfigure}
+
+	\caption{Evolution of the loss during the learning}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/accuracy/arrhythmia.png}
+		\caption{Arrhythima data set}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/accuracy/adults.png}
+		\caption{Adults data set}
+	\end{subfigure}
+	\caption{Evolution of the accuracy during the learning}
+\end{figure}
+
+In our experiment, the SDCA did not perform that well.
+
+We can see that after a consequent number of iterations, the accuracy of the estimator trained with SDCA stops to move, while the accuracy of the one trained with SGD can keep moving, and reaches better accuracy levels.
 
 %=================================================================================================
 \section*{Conclusion}
