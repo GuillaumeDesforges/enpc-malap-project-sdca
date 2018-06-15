@@ -30,42 +30,33 @@ class BaseSDCA(BaseOptimizer):
         hist_alpha = []
         hist_w = []
         hist_loss = []
+        if save_hist:
+            hist_alpha.append(np.copy(alpha))
+            hist_w.append(np.copy(w))
+            loss = self.loss(x, y, w)
+            hist_loss.append(loss)
 
-        print("Nombre d'itérations :", int(n*epochs))
+        best_w = np.copy(w)
+        best_loss = self.loss(x, y, w)
 
-        for k in range(int(n*epochs)):
-            #print("Itération n°", k)
+        iter_max = int(n * epochs)
+        for iter_k in range(iter_max):
             i = np.random.randint(n)
             delta = self.increment(x[i], y[i], w, alpha[i], n)
             alpha[i] += delta
             w += delta*x[i] / (self.c * n)
 
+            loss = self.loss(x, y, w)
+            if loss < best_loss:
+                best_loss = loss
+                best_w = np.copy(w)
+
             if save_hist:
                 hist_alpha.append(np.copy(alpha))
                 hist_w.append(np.copy(w))
-                loss = self.loss(x, y, w)
                 hist_loss.append(loss)
-
-        # do epochs
-        '''for epoch in range(epochs):
-            # at each epoch we fit to each data in a random order
-            index_order = np.arange(n)
-            np.random.shuffle(index_order)
-
-            for i in index_order:
-                delta = self.increment(x[i], y[i], w, alpha[i], n)
-                alpha[i] += delta
-                w += delta*x[i] / (self.c * n)
-
-                if save_hist:
-                    hist_alpha.append(np.copy(alpha))
-                    hist_w.append(np.copy(w))
-                    loss = self.loss(x, y, w)
-                    hist_loss.append(loss)'''
-
-
 
         if save_hist:
             return hist_w, hist_loss, hist_alpha
 
-        return w
+        return best_w
