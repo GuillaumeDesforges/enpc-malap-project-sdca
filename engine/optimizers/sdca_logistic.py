@@ -3,10 +3,9 @@ from engine.optimizers.base_sdca import BaseSDCA
 
 
 def logistic_loss(x, y, w, c):
-    #z = c * np.sum([np.log(1 + np.exp(-y[i] * np.dot(w.T, x[i]))) for i in range(x.shape[0])]) + np.dot(w, w) / 2
-    seuil = 100
     a = - y * np.dot(x, w)
-    b = np.where(a < seuil, np.log(1 + np.exp(a)), a)
+    # floating point arithmetic seems to make log(1 + exp(x)) = x if x > 40
+    b = np.where(a < 40, np.log(1 + np.exp(a)), a)
     z = c * np.sum(b) + np.dot(w, w)/2
     return z
 

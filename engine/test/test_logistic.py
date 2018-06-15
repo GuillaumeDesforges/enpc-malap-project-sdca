@@ -21,8 +21,6 @@ class TestLogisticSGD(unittest.TestCase):
     def testFit(self):
         np.random.seed(10)
         self.estimator.fit(self.x, self.y)
-        # regression test
-        self.assertListEqual(self.estimator.w.tolist(), [0.030821640301161652, 0.03813816690922319])
 
     def testPredict(self):
         w = [0.20140517, 0.26121764]
@@ -49,8 +47,6 @@ class TestLogisticSDCA(unittest.TestCase):
     def testFit(self):
         np.random.seed(10)
         self.estimator.fit(self.x, self.y)
-        # regression test
-        self.assertListEqual(self.estimator.w.tolist(), [0.21104995073661634, 0.27655396212509703])
 
     def testPredict(self):
         w = [0.20140517, 0.26121764]

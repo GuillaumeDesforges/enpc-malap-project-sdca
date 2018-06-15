@@ -1,7 +1,5 @@
-# enpc-malap-project
+# enpc-malap-project-sdca
 
-Machine Learning Course Project
+This is the repository of our report for the Ecole des Ponts ParisTech (ENPC) Machine Learning course's project.
 
-We study current advancements on SDCA for logistic regression and multiclass cross entropy.
-
-We implement in Python an interesting algorithm that has a closed form for solving each step for optimizing $\alpha_i$ optimisation.
+Our report focuses on SDCA for logistic regression.
