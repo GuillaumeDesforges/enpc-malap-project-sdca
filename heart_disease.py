@@ -18,6 +18,8 @@ from engine.utils.projections import identity_projection, build_polynomial_proje
 
 from sklearn.model_selection import train_test_split
 
+from hyper_parameters_choice import eval_C, eval_eps
+
 nomFichier = "datasets\Heart_disease\heart_disease_data.pkl"
 
 ## Global param
@@ -52,56 +54,12 @@ def get_hist_accuracy(x, y, hist_w, estimator):
 
 ## paramètre C par validation croisée
 
-def eval_C(data, labels, vect_param, nb_epoch, eps_base=10**-6):
-    X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.15)
-    
-    vect_train_accuracy_sgd = []
-    vect_train_accuracy_sdca = []
-    
-    vect_test_accuracy_sgd = []
-    vect_test_accuracy_sdca = []
-    
-    # projection
-    chosen_proj = identity_projection
-    
-    for param in vect_param:
-        # make estimator
-        sgd = LogisticSGD(c=param, eps=eps_base)
-        sgd_clf = LogisticRegression(optimizer=sgd, projection=chosen_proj)
-        
-        sdca = LogisticSDCA(c=param)
-        sdca_clf = LogisticRegression(optimizer=sdca, projection=chosen_proj)
-        
-        # train estimators without history
-        sgd_clf.fit(X_train, y_train, epochs=nb_epoch, save_hist=False)
-        sdca_clf.fit(X_train, y_train, epochs=nb_epoch, save_hist=False)
-        
-        vect_train_accuracy_sgd.append(sgd_clf.score_accuracy(X_train, y_train))
-        vect_train_accuracy_sdca.append(sdca_clf.score_accuracy(X_train, y_train))
-        
-        vect_test_accuracy_sgd.append(sgd_clf.score_accuracy(X_test, y_test))
-        vect_test_accuracy_sdca.append(sdca_clf.score_accuracy(X_test, y_test))
-    
-    plt.figure()
-    plt.semilogx(vect_param, vect_train_accuracy_sgd, 'b', label="train")
-    plt.semilogx(vect_param, vect_test_accuracy_sgd, 'r', label="test")
-    plt.title("SGD accuracy vs. hyperparameter C")
-    plt.xlabel("C")
-    plt.ylabel("Accuracy")
-    plt.legend()
-    
-    plt.figure()
-    plt.plot(np.log10(vect_param), vect_train_accuracy_sdca, 'b', label="train")
-    plt.plot(np.log10(vect_param), vect_test_accuracy_sdca, 'r', label="test")
-    plt.title("SDCA accuracy vs. hyperparameter C")
-    plt.xlabel("C")
-    plt.ylabel("Accuracy")
-    plt.legend()
+
 
 if False:
     vect_C = 10**np.linspace(-4, 5, 70)
-    nb_epoch = 30
-    eval_C(Xnorm, Y, vect_C, nb_epoch)
+    nb_epoch = 10
+    eval_C(Xnorm, Y, vect_C, nb_epoch, "Arrhythmia")
 
 '''
 Bon paramètre :
@@ -113,41 +71,13 @@ c_sdca = 10**-1
 
 ## Paramètre eps pour SGD par validation croisée
 
-def eval_eps(data, labels, vect_param, nb_epoch, param_c=10**3):
-    X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.15)
-    
-    vect_train_accuracy_sgd = []
-    
-    vect_test_accuracy_sgd = []
-    
-    # projection
-    chosen_proj = identity_projection
-    
-    for param in vect_param:
-        # make estimator
-        sgd = LogisticSGD(c=param_c, eps=param)
-        sgd_clf = LogisticRegression(optimizer=sgd, projection=chosen_proj)
-        
-        # train estimators without history
-        sgd_clf.fit(X_train, y_train, epochs=nb_epoch, save_hist=False)
-        
-        vect_train_accuracy_sgd.append(sgd_clf.score_accuracy(X_train, y_train))
-        
-        vect_test_accuracy_sgd.append(sgd_clf.score_accuracy(X_test, y_test))
-    
-    plt.figure()
-    plt.semilogx(vect_param, vect_train_accuracy_sgd, 'b', label="train")
-    plt.semilogx(vect_param, vect_test_accuracy_sgd, 'r', label="test")
-    plt.title("Accuracy of SGD vs. hyperparameter epsilon \non data set Arrhythmia")
-    plt.xlabel("Epsilon")
-    plt.ylabel("Accuracy")
-    plt.legend()
 
 
-if False:
+
+if True:
     vect_eps = 10**np.linspace(-10, 0, 70)
-    nb_epoch = 60
-    eval_eps(Xnorm, Y, vect_eps, nb_epoch)
+    nb_epoch = 20
+    eval_eps(Xnorm, Y, vect_eps, nb_epoch, "Arrhythmia")
 
 '''
 Best hyperparameter
@@ -257,10 +187,10 @@ def proj_degr2(X):
             k += 1
     return Z
 
-
-X_poly = proj_degr2(X)
-normalizer = Normalizer(X_poly)
-Xnorm_poly = normalizer.normalize(X_poly)
+if False:
+    X_poly = proj_degr2(X)
+    normalizer = Normalizer(X_poly)
+    Xnorm_poly = normalizer.normalize(X_poly)
 
 
 
