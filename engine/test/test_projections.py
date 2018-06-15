@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-import engine.estimators.projections as projections
+import engine.utils.projections as projections
 
 
 class TestIdentityProjection(unittest.TestCase):
@@ -35,3 +35,16 @@ class TestPolynomialProjection(unittest.TestCase):
             x[:, 0]**1 * x[:, 1]**1,
             x[:, 0]**2 * x[:, 1]**0], axis=-1)
         np.testing.assert_allclose(x_proj, x_expe)
+
+
+class TestGaussianProjection(unittest.TestCase):
+    def test(self):
+        np.random.seed(0)
+        n, d = 500, 10
+        x = np.random.randint(0, 10, size=(n, d))
+        sample_rate = 0.5
+        n_sample = n * sample_rate
+        gaussian_projection = projections.build_gaussian_projection(x, sampling_rate=sample_rate)
+        x_proj = gaussian_projection(x)
+        print(x_proj)
+        self.assertTupleEqual(x_proj.shape, (n, n_sample))

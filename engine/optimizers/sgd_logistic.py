@@ -3,10 +3,9 @@ from engine.optimizers.base_sgd import BaseSGD
 
 
 def logistic_loss(x, y, w, c):
-    #z = c * np.sum([np.log(1 + np.exp(-y[i] * np.dot(w.T, x[i]))) for i in range(x.shape[0])]) + np.dot(w, w) / 2
-    seuil = 100
     a = - y * np.dot(x, w)
-    b = np.where(a < seuil, np.log(1 + np.exp(a)), a)
+    # floating point arithmetic seems to make log(1 + exp(x)) = x if x > 40
+    b = np.where(a < 40, np.log(1 + np.exp(a)), a)
     z = c * np.sum(b) + np.dot(w, w)/2
     return z
 
@@ -16,7 +15,7 @@ def logistic_increment(x_i, y_i, w, c, eps):
 
 
 class LogisticSGD(BaseSGD):
-    def __init__(self, c, eps):
+    def __init__(self, c: float, eps: float):
         self.c = c
         self.eps = eps
 

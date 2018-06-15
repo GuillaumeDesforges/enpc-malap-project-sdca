@@ -14,6 +14,9 @@
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
 
+% url
+\usepackage{hyperref}
+
 % metadata
 \title{Stochastic Dual Coordinate Descent}
 \author{Guillaume Desforges \& Michaël Karpe \& Matthieu Roux}
@@ -65,7 +68,6 @@ Finally we conclude on SDCA strengths and weaknesses.
 \section{Methods}
 % 3 pages
 % (a) [DONE] ...... specific problem studied
-% (b) [TODO?] ..... related work
 % (c) [DONE] ...... model, main idea
 % (d) [IRRELEVANT]  specific methodology
 % (e) [DONE] ...... algorithms
@@ -125,7 +127,6 @@ If we consider now a generic loss function $\phi$, either L-Lipschitz or ($1/\ga
 \end{equation}
 with solution $w^{*} = \arg \min_{w \in \mathbb{R}^d} P(w)$.
 
-\paragraph{}
 Let's now introduce the convex conjugate, a very useful tool in the dual space. It is defined as follow $\phi_i$ : $\phi_i^{*}(u) = \max_z (zu-\phi_i(z))$. In the case $\phi_i$ is (1/$\gamma$)-smooth, its convex conjugate $\phi_i^*$ is $\gamma$-strongly convex. We are now able to have a compact notation for the dual problem :
 \begin{equation}
     \max_{\alpha \in \mathbb{R}^n} D(\alpha) \quad \text{ where } D(\alpha) = \left[ \dfrac{1}{n} \sum_{i=1}^n -\phi_i^{*}(-\alpha_i) - \dfrac{\lambda}{2}\norm{\dfrac{1}{\lambda n}\sum_{i=1}^n \alpha_ix_i}^2 \right]
@@ -133,54 +134,17 @@ Let's now introduce the convex conjugate, a very useful tool in the dual space. 
 \end{equation}
 with solution $\alpha^{*} = \arg \max_{a \in \mathbb{R}^n} D(\alpha)$.
 
+Some loss functions used in the report are described in the table in appendix \ref{appendix-losses}.
+
 \subsection{SDCA principle}
 
-\paragraph{}
-The SDCA method starts from a remark : with standard SGD, the learning rate $\epsilon$ is not adaptative, and it can be more or less complicated to find a good one, which could provide good properties of convergence. That is why the coordinate ascent approach is interesting. Instead of ascenting in the direction of the gradient with a fixed increment, it proposes to update one coordinate to its value that maximizes the objective value. The idea is then to repeat the operation on all coordinates so that it converges to the maximum of the objective function. We can then give it stochastic properties by chosing randomly the coordinate to optimize at each iteration.
+\hspace{2em}
+When optimizing with the standard SGD, the learning rate $\epsilon$ is not adaptative, and it can be more or less complicated to find a good one, which could provide good properties of convergence.
 
-\subsection{Some classical loss functions}
-
-Some loss functions used in the report are described in the table below.\\
-$\Delta \alpha_i$ is the notation we use to represent the increment to add to $\alpha_i$ (one coordinate, at a given iteration) to maximize the objective function with respect to that coordinate.
-
-\begin{center}
-	\begin{table}[H]
-		\centering
-
-		\begin{tabular}{|c|c|}
-			\hline
-			\textbf{Squared loss:}
-			& \textbf{Absolute deviation loss:}  \\[0.3em]
-
-			$\phi_i(a) = (a-y_i)^2$ 
-			& $\phi_i(a) = \abs{a-y_i}$ \\[0.3em]
-
-			$\phi_i^{*}(-a) = -ay_i+a^2/4$ 
-			& $\phi_i^{*}(-a) = -ay_i$, $a \in [-1,1]$ \\[0.3em]
-
-			$\Delta \alpha_i = \dfrac{y_i-x_i^\top w^{(t-1)}-0.5\alpha_i^{(t-1)}}{0.5+\norm{x_i}^2/(\lambda n))}$
-			& $\Delta \alpha_i = \max \left( 1, \min \left( 1, \dfrac{y_i-x_i^\top w^{(t-1)}}{\norm{x_i}^2/(\lambda n)} + \alpha_i^{(t-1)} \right) \right) - \alpha_i^{(t-1)}$  \\[1.3em]
-			\hline
-
-			\textbf{Log loss:}
-			& \textbf{($\gamma$-smoothed) Hinge loss:} \\[0.3em]
-
-			$\phi_i(a) = \log(1+\exp(-y_ia))$
-			& $\phi_i(a) = \max\{0,1-y_ia\}$ \\[0.3em]
-
-			$\phi_i^{*}(-a) = -ay_i\log(ay_i) + (1-ay_i)\log(1-ay_i)$
-			& $\phi_i^{*}(-a) = -ay_i + \gamma a^2/2$, $ay_i \in [0,1]$ \\[0.3em]
-
-			$\Delta \alpha_i = \dfrac{(1+\exp(x_i^\top w^{(t-1)}y_i))^{-1}y_i-\alpha_i^{(t-1)}}{\max(1,0.25+\norm{x_i}^2/(\lambda n))}$
-			& $\Delta \alpha_i = y_i \max \left( 0, \min \left( 1, \dfrac{1-x_i^\top w^{(t-1)} y_i-\gamma \alpha_i^{(t-1)}y_i}{\norm{x_i}^2/(\lambda n)+\gamma} + \alpha_i^{(t-1)} y_i \right) \right) - \alpha_i^{(t-1)}$ \\[1.3em]
-			\hline
-		\end{tabular}
-
-		\caption{Used loss functions, convex conjugates and closed form of solutions of problem (*).}
-		\label{dataset}
-	\end{table}
-\end{center}
-
+\hspace{2em}
+With DCA, instead of ascending in the direction of the gradient with a fixed increment, it maximizes the objective value on one dual coordinate at once.
+The idea is then to repeat the operation on all dual coordinate so that it converges to the maximum of the objective function.
+We can then give it stochastic properties by chosing randomly the coordinate to optimize at each iteration : it is then the SDCA.
 
 \subsection{Duality Gap}
 
@@ -215,11 +179,6 @@ Let $w(\alpha) = \frac{1}{\lambda n} \sum_{i=1}^n \alpha_ix_i$.
 We have $w(\alpha^{*}) = w^{*}$, $P(w^{*}) = D(\alpha^{*})$, $\forall (w,\alpha), P(w) = D(\alpha)$ due to classic optimization results.
 
 We define the duality gap : $P(w(\alpha)) - P(w^{*})$
-
-
-
-
-
 
 \subsection{The SDCA algorithm}
 
@@ -259,12 +218,17 @@ To obtain an expected duality gap of $\mathbb{E}[P(\overline{w})-D(\overline{\al
 	T \geq n + \max\left(0, \left\lceil n \log \left(\dfrac{\lambda n}{2 L^2} \right) \right\rceil \right) + \dfrac{20 L^2}{\lambda \epsilon_P} \quad \left( \text{resp. } T > \left(n + \dfrac{1}{\lambda \gamma} \right) \log \left[ \dfrac{1}{(T-T_0)\epsilon_P} \left(n + \dfrac{1}{\lambda \gamma} \right) \right] \right)
 \end{equation}
 
-% TODO décrire ce que fait le SDCA
+\subsection{Why SDCA over SGD ?}
 
-\subsection{SDCA vs SGD}
+SGD finds an $\epsilon_P$-sub-optimal solution in time $O(1/(\lambda \epsilon_P))$.
+This runtime does not depend on $n$ and therefore is favorable when $n$ is very large.
+However, the SGD approach has several disadvantages:
 
-% TODO comparer SDCA et SGD dans la théorie (si trop dur, ne pas le faire)
-
+\begin{enumerate}
+    \item it does not have a clear stopping criterion;
+    \item it tends to be too aggressive at the beginning of the optimization process, especially when $\lambda$ is very small;
+    \item while SGD reaches a moderate accuracy quite fast, its convergence becomes rather slow when we are interested in more accurate solutions.
+\end{enumerate}
 
 
 \newpage
@@ -276,11 +240,41 @@ To obtain an expected duality gap of $\mathbb{E}[P(\overline{w})-D(\overline{\al
 % (c) Factual description of the type of results reported (explanation pertaining to the Figures, tables, etc) \\
 % (d) Interpretation and discussion of the results (comparison with the baselines, advantages of each algorithm, etc) \\
 
+\subsection{Implementation}
+
+The experiments in this report were done with our own implementation, available on GitHub :
+
+\url{ https://github.com/GuillaumeDesforges/enpc-malap-project-sdca }
+
+We implemented :
+
+\begin{itemize}
+	\item Logistic regression estimators that can use an \texttt{Optimizer} object
+	\item SGD optimizer
+	\item SDCA optimizer
+	\item projections (polynomial and gaussian)
+	\item some data utilities
+\end{itemize}
+
 \subsection{Datasets}
+
+We used our implementation on :
+
+\begin{itemize}
+	\item Heart Deseases : \url{https://archive.ics.uci.edu/ml/datasets/Arrhythmia}
+\end{itemize}
+
 \subsection{Protocol}
+
+We took the raw datasets as input and fit an estimator thanks to either SGD or SDCA optimizer, and compared the primal objective function during learning.
+
+The hyperparameters were fixed to standart values.
+
 \subsection{Results}
-\subsubsection{Raw results}
-\subsubsection{Interpretations}
+
+% TODO put figures (raw results) here
+
+% TODO comment raw results
 
 \newpage
 %=================================================================================================
@@ -289,6 +283,61 @@ To obtain an expected duality gap of $\mathbb{E}[P(\overline{w})-D(\overline{\al
 % (a) summary \\
 % (b) main conclusions and take home messages \\
 % (c) Remaining questions/ future directions (only if relevant) \\
+
+\newpage
+%=================================================================================================
+\section*{References}
+
+% TODO references
+
+\newpage
+\appendix
+%=================================================================================================
+\section{Losses used}
+\label{appendix-losses}
+
+\begin{center}
+	\begin{table}[H]
+		\centering
+
+		\begin{tabular}{|c|}
+			\hline
+
+			\textbf{Squared loss:}\\[1.3em]
+			$\phi_i(a) = (a-y_i)^2$\\[1.3em]
+			$\phi_i^{*}(-a) = -ay_i+a^2/4$\\[1.3em]
+			$\Delta \alpha_i = \dfrac{y_i-x_i^\top w^{(t-1)}-0.5\alpha_i^{(t-1)}}{0.5+\norm{x_i}^2/(\lambda n))}$\\[1.3em]
+
+			\hline
+
+			\textbf{Absolute deviation loss:}\\[1.3em]
+			$\phi_i(a) = \abs{a-y_i}$ \\[1.3em]
+			$\phi_i^{*}(-a) = -ay_i$, $a \in [-1,1]$\\[1.3em]
+			$\Delta \alpha_i = \max \left( 1, \min \left( 1, \dfrac{y_i-x_i^\top w^{(t-1)}}{\norm{x_i}^2/(\lambda n)} + \alpha_i^{(t-1)} \right) \right) - \alpha_i^{(t-1)}$\\[1.3em]
+			
+			\hline
+
+			\textbf{Log loss:}\\[1.3em]
+			$\phi_i(a) = \log(1+\exp(-y_ia))$\\[1.3em]
+			$\phi_i^{*}(-a) = -ay_i\log(ay_i) + (1-ay_i)\log(1-ay_i)$\\[1.3em]
+			$\Delta \alpha_i = \dfrac{(1+\exp(x_i^\top w^{(t-1)}y_i))^{-1}y_i-\alpha_i^{(t-1)}}{\max(1,0.25+\norm{x_i}^2/(\lambda n))}$\\[1.3em]
+
+			\hline
+
+			\textbf{($\gamma$-smoothed) Hinge loss:}\\[1.3em]
+			$\phi_i(a) = \max\{0,1-y_ia\}$\\[0.3em]
+			$\phi_i^{*}(-a) = -ay_i + \gamma a^2/2$, $ay_i \in [0,1]$\\[1.3em]
+			$\Delta \alpha_i = y_i \max \left( 0, \min \left( 1, \dfrac{1-x_i^\top w^{(t-1)} y_i-\gamma \alpha_i^{(t-1)}y_i}{\norm{x_i}^2/(\lambda n)+\gamma} + \alpha_i^{(t-1)} y_i \right) \right) - \alpha_i^{(t-1)}$\\[1.3em]
+
+			\hline
+		\end{tabular}
+
+		\caption{Used loss functions, convex conjugates and closed form of solutions of problem (*).}
+		\label{dataset}
+	\end{table}
+\end{center}
+
+$\Delta \alpha_i$ is the notation we use to represent the increment to add to $\alpha_i$ (one coordinate, at a given iteration) to maximize the objective function with respect to that coordinate.
 
 
 \end{document}
