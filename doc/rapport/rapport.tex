@@ -244,25 +244,60 @@ We implemented :
 	\item some data utilities
 \end{itemize}
 
-\subsection{Datasets}
+\subsection{Description of the chosen datasets}
 
 We used our implementation on :
 
 \begin{itemize}
-	\item Heart Deseases : \url{https://archive.ics.uci.edu/ml/datasets/Arrhythmia}
+	\item Two gaussians to check that our implementation works
+	\item \textit{Arrhythmia} : \url{https://archive.ics.uci.edu/ml/datasets/Arrhythmia}
+	\item \textit{Adults} : \url{https://archive.ics.uci.edu/ml/datasets/adult}
 \end{itemize}
 
-\subsection{Protocol}
+While the Arrhythmia dataset has 452 instances, which is quite low, it has 279 features, which is quite high.
+On the other hand, the Adult dataset has 48842 instances but only 14 features.
 
-We took the raw datasets as input and fit an estimator thanks to either SGD or SDCA optimizer, and compared the primal objective function during learning.
+The Arrhythmia dataset will help us check the properties of SDCA when there are many features.
+The Adult dataset will help us compare the SGD and SDCA when there are many instances.
 
-The hyperparameters were fixed to standart values.
+\subsection{Use of closed forms and numerical issues}
 
-\subsection{Results}
+In this report, we used the closed form presented above.
+The closed form for the logistic regression gave us numerous numerical issues.
 
-% TODO put figures (raw results) here
+% TODO développer
 
-% TODO comment raw results
+% TODO supprimer ces commentaires
+% C'EST l'INVERSE !!! @MichaelKarpe
+% le papier sur la forme non close passe son temps à vouloir régler les problèmes numériques
+% After having fixed or bypassed numeric issues thanks to the use of closed forms, we can discuss the choice of the different parameters.
+
+A solution that is proposed by another study is to optimize a subproblem with a modified Newton algorithm for each iteration, and thus avoid catastrophic cancelations.
+
+\subsection{Choice of algorithm termination option}
+
+Because of the stochastic behavior of the algorithm, the output is very sensitive to the iteration at which it stops.
+Indeed, coefficients vary suddenly, and the convergence is not really monotonous : at some point, it is uncertain whether the loss improves or not.
+
+There are essentially two ways of taking this into account.
+The first method is to stop at a random step, which actually yields good results.
+The second method consists in averaging the last $\alpha^{(t)}$ obtained by the algorithm, making sure that the local variations of $\alpha$ are corrected.
+
+% TODO parler de la terminaison par le duality gap !
+% Il aurait fallu regarder si les conditions sur le nb d'itérations sont bien vérifiées ou pas
+
+% Transition : 
+Considering this analysis, and as we did not achieve to check the theorem in Section 2.6., we decided to choose the average output option and to set $T_0 = T/2$, as suggested in the studied articles.
+
+\subsection{Choice of hyperparameters}
+
+Lorem ipsum.
+
+Transition to be done!
+
+\subsection{Comparison between SGD and SDCA on used datasets}
+
+Lorem ipsum.
 
 
 %=================================================================================================

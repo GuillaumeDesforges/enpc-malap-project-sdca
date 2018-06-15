@@ -34,6 +34,9 @@ class TestPolynomialProjection(unittest.TestCase):
             x[:, 0]**1 * x[:, 1]**0,
             x[:, 0]**1 * x[:, 1]**1,
             x[:, 0]**2 * x[:, 1]**0], axis=-1)
+        print(x)
+        print(x_proj)
+        print(x_expe)
         np.testing.assert_allclose(x_proj, x_expe)
 
 

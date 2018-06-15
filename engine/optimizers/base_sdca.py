@@ -27,11 +27,9 @@ class BaseSDCA(BaseOptimizer):
         # weight vector
         w = np.zeros(d)
 
-        hist_alpha = []
         hist_w = []
         hist_loss = []
         if save_hist:
-            hist_alpha.append(np.copy(alpha))
             hist_w.append(np.copy(w))
             loss = self.loss(x, y, w)
             hist_loss.append(loss)
@@ -52,11 +50,10 @@ class BaseSDCA(BaseOptimizer):
                 best_w = np.copy(w)
 
             if save_hist:
-                hist_alpha.append(np.copy(alpha))
                 hist_w.append(np.copy(w))
                 hist_loss.append(loss)
 
         if save_hist:
-            return hist_w, hist_loss, hist_alpha
+            return hist_w, hist_loss
 
         return best_w
