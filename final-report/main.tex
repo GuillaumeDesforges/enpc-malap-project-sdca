@@ -1,0 +1,504 @@
+\documentclass{article}
+
+% english 
+\usepackage[utf8]{inputenc}
+
+% reduced margins
+\usepackage{fullpage}
+
+% maths
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% algorithms
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+% url
+\usepackage{hyperref}
+
+% graphics
+\usepackage{graphicx}
+% especially to force text not to skip images
+\usepackage{float}
+% for mosaic of figures
+\usepackage{subcaption}
+
+% indent first paragraph of section
+\usepackage{indentfirst}
+
+% for better tables
+\usepackage{booktabs}
+
+% metadata
+\title{Stochastic Dual Coordinate Ascent}
+\author{Guillaume Desforges \& Michaël Karpe \& Matthieu Roux}
+\date{June 15th, 2018}
+
+% custom commands
+\newcommand{\abs}[1]{\left|#1\right|}
+\newcommand{\norm}[1]{\left\|#1 \right\|}
+
+% custom display
+% space between the lines
+%\setlength{\parskip}{0.8em}
+% indentation size
+%\setlength{\parindent}{0em}
+
+
+
+\begin{document}
+
+%=================================================================================================
+%=================================================================================================
+\maketitle
+
+
+%=================================================================================================
+%=================================================================================================
+\section*{Introduction}
+
+% Context
+\paragraph{}In machine learning, the process of fitting a model to the data requires to solve an optimization problem.
+The difficulty resides in the fact that this optimization quickly becomes very complex when dealing with real problems.
+The Stochastic Gradient Descent (SGD) is a very popular algorithm to solve those problems because it has good convergence guaranties.
+Yet, the SGD does not have a good stopping criteria, and its solutions are often not accurate enough.
+
+% General problem studied, general methodology
+\paragraph{}The Stochastic Dual Coordinate Ascent (SDCA) tries to solve the optimization problem by solving its dual problem.
+Instead of optimizing the weights, we optimize a dual variable from which we can compute the weights and thus solve the former.
+This method can give good results for specific problems : for instance, solving the dual problem of the SVM has proven to be effective and to give interesting results, with a linear convergence in some cases.
+
+% Focus and goal of the work presented % Structure of the report
+\paragraph{}In this report, we compile the key theoretical points necessary to have a global understanding of the SDCA.
+First we introduce the SDCA and its principles.
+We then present the machine learning problem our report focuses on, and we study computational performances of the method by trying to apply SDCA on concrete problems.
+Finally we conclude on SDCA strengths and weaknesses.
+
+\paragraph{Note} \textit{We added experimentation on real data sets since the presentation of our poster (Section 2).}
+
+
+%=================================================================================================
+%=================================================================================================
+\section{Purpose of the report: a new SGD-like method}
+% 3 pages
+% (a) [DONE] ...... specific problem studied
+% (c) [DONE] ...... model, main idea
+% (d) [IRRELEVANT]  specific methodology
+% (e) [DONE] ...... algorithms
+
+\subsection{Difference between SGD and SDCA}
+
+\paragraph{}A simple approach for solving Support Vector Machine learning is Stochastic Gradient Descent (SGD).
+SGD finds an $\epsilon_P$-sub-optimal solution in time $O(1/(\lambda \epsilon_P))$.
+We say that a solution $w$ is $\epsilon_P$-sub-optimal if $P(w) - P(w^{*}) \leq \epsilon_P$, where $P$ is the objective function of the primal problem.
+This runtime does not depend on $n$ and therefore is favorable when $n$ is very large.
+However, as explained in the studied articles, the SGD approach has several disadvantages:
+
+\begin{enumerate}
+    \item it does not have a clear stopping criterion
+    \item it tends to be too aggressive at the beginning of the optimization process, especially when $\lambda$ is very small
+    \item while SGD reaches a moderate accuracy quite fast, its convergence becomes rather slow when we are interested in more accurate solutions
+\end{enumerate}
+
+\paragraph{}Therefore, an alternative approach is Dual Coordinate Ascent (DCA), which solves the dual problem instead of the primal problem.
+
+\subsection{Formulation of SDCA optimization problem}
+
+\paragraph{}Let $x_1, \dots, x_n \in \mathbb{R}^d$, $\phi_1, \dots, \phi_n$ scalar convex functions, $\lambda > 0$ regularization parameter. Let us focus on the following optimization problem:
+\begin{equation}
+    \min_{w \in \mathbb{R}^d} P(w) = \left[ \dfrac{1}{n} \sum_{i=1}^n \phi_i(w^\top x_i) + \dfrac{\lambda}{2}\norm{w}^2 \right]
+    \label{primal}
+\end{equation}
+with solution $w^{*} = \arg \min_{w \in \mathbb{R}^d} P(w)$.
+
+\paragraph{}Moreover, we say that a solution $w$ is $\epsilon_P$-sub-optimal if $P(w) - P(w^{*}) \leq \epsilon_P$. We analyze here the required runtime to find an $\epsilon_P$-sub-optimal solution using SDCA.
+
+\paragraph{}Let $\phi_i^{*} : \mathbb{R} \rightarrow \mathbb{R}$ be the convex conjugate of $\phi_i$ : $\phi_i^{*}(u) = \max_z (zu-\phi_i(z))$. The dual problem of \eqref{primal} is defined as follows:
+\begin{equation}
+    \max_{\alpha \in \mathbb{R}^n} D(\alpha) = \left[ \dfrac{1}{n} \sum_{i=1}^n -\phi_i^{*}(-\alpha_i) - \dfrac{\lambda}{2}\norm{\dfrac{1}{\lambda n}\sum_{i=1}^n \alpha_ix_i}^2 \right]
+    \label{dual}
+\end{equation}
+with solution $\alpha^{*} = \arg \max_{a \in \mathbb{R}^n} D(\alpha)$.
+
+\paragraph{}Moreover, if we define $w(\alpha) = \frac{1}{\lambda n} \sum_{i=1}^n \alpha_ix_i$, thanks to classic optimization results, we then have:
+\begin{equation}
+	w(\alpha^{*}) = w^{*}
+\end{equation}
+\begin{equation}
+	P(w^{*}) = D(\alpha^{*})
+\end{equation}
+
+\paragraph{}We also define the duality gap as $P(w(\alpha)) - D(\alpha)$. The SDCA procedure is described in Section 1.4.
+%The duality gap reaches 0 when $\alpha$ is optimal.
+
+
+
+\subsection{Focus on the logistic regression}
+
+\paragraph{}In order to fully grasp the method behind the first paper, let's take an example with the logistic regression. We will consider logistic regression only for binary classification. We use the following usual notations : $X \in \mathbf{X} = \mathbb{R}^p$ the random variable for the description space, and $Y \in \mathbf{Y} = \{-1,1\}$ the random variable for the label. We recall that the model is the following :
+\begin{equation}
+	\frac{\mathbb{P}(y=1 | X=x)}{\mathbb{P}(y=-1 |X=x)} = w^\top x, \quad w \in \mathbb{R}^p
+\end{equation}
+
+\paragraph{}We want to find $w$ such that it maximizes the likelihood, or log-likelihood, with a term of regularization:
+\begin{equation}
+	\min_w C \sum_i \log\left(1 + e^{-y_iw^\top x_i}\right)  + \frac{1}{2} w^\top w
+\end{equation}
+
+\paragraph{}In order to get the dual problem, we rewrite it with an artificial constraint $z_i = y_iw^Tx_i$, and we have the following Lagrangian :
+\begin{equation}
+	\mathcal{L}(w, z, \alpha) = \sum_i (C \log\left(1+z_i\right) + \alpha_i z_i) - \sum_i \alpha_i e^{-z_i} + \frac{1}{2}w^\top w 
+\end{equation}
+
+\paragraph{}We will note $w^* = \sum_i \alpha_i y_i x_i$ and $z^*$ the variables solution of the optimization problem
+\begin{equation}
+	\min_{w, z} \mathcal{L}(w, z, \alpha) = \mathcal{L}(w^*, z^*, \alpha) = \psi(\alpha) 
+\end{equation}
+
+\paragraph{}In fact, it leads to the following dual problem :
+\begin{equation}
+	\begin{aligned}
+		& \max_{\alpha} & &\sum_{i \in I} (-\alpha_i \log(\alpha_i) - (C-\alpha_i) \log(C - \alpha_i)) - \frac{1}{2} \alpha^\top Q\alpha\\
+		& s.t.          & &I = \{i,\ 0 < \alpha_i < C \}\\
+		&               & &0 \leq \alpha_i \leq C \\
+		&               & &Q_{ij} = y_i x_i^T x_j y_j
+	\end{aligned}
+\end{equation}
+
+\paragraph{}Now we got the dual problem, we need to solve a maximization problem.
+To do so, we will use in this paper the coordinate ascent method, which consist in optimizing the objective function coordinate by coordinate (or with groups of coordinates).
+The SDCA algorithm is described in the next subsection.
+
+\subsection{SDCA algorithm}
+
+\begin{algorithm}[H]
+    \caption{Procedure SCDA}
+    \begin{algorithmic}
+        \Procedure{SCDA}{$\alpha^{(0)},\phi, T_0, T$}
+        \State $w^{(0)} \gets w(\alpha^{(0)})$
+        \For{$t = 1, \dots, T$} %FOR
+        \State Randomly pick $i$
+        \State $\Delta \alpha_i \gets \arg \max -\phi^{*}_i(-(\alpha_i^{(t-1)}+\Delta \alpha_i))-\frac{\lambda n}{2}\norm{w^{(t-1)}+(\lambda n)^{-1}\Delta \alpha_i x_i}^2$ \qquad \qquad \qquad \qquad \qquad (*)
+        \State $\alpha^{(t)} \gets \alpha^{(t-1)} + \Delta \alpha_i e_i$
+        \State $w^{(t)} \gets w^{(t-1)} + (\lambda n)^{-1} \Delta \alpha_i x_i$
+        \EndFor
+        \If{Averaging option}
+        \State \textbf{return} $\overline{w} = \frac{1}{T-T_0} \sum_{i = T_0+1}^T w^{(t-1)}$
+        \EndIf
+        \If{Random option}
+        \State \textbf{return} $\overline{w} = w^{(t)}$ for a random $t \in [|T_0+1, T|]$
+        \EndIf
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
+
+
+\subsection{Computation of closed forms}
+
+\paragraph{}In the studied articles, SDCA is computed either for $L$-Lipschitz loss functions or for $(1/\gamma)$-smooth loss functions.
+We recall that a function $\phi_i : \mathbb{R} \rightarrow \mathbb{R}$ is $L$-Lipschitz if $\forall a,b \in \mathbb{R}$, $\abs{\phi_i(a)-\phi_i(b)} \leq L \abs{a-b}$, and that a function $\phi_i : \mathbb{R} \rightarrow \mathbb{R}$ is $(1/\gamma)$-smooth if it is differentiable and its derivative is (1/$\gamma)$-Lipschitz.
+Moreover, if $\phi_i$ is $(1/\gamma)$-smooth, then $\phi_i^{*}$ is $\gamma$-strongly convex.
+The different loss functions used are described in the table below.
+For experimentation, we mainly focused on log loss and square loss.
+Some loss functions used in the report are described in appendix \ref{appendix-losses}.
+
+\subsection{Algorithm termination}
+
+\paragraph{}For the sake of simplicity, the studied articles consider the following assumptions: $\forall i, \norm{x_i} \leq 1$, $\forall (i,a), \phi_i(a) \geq 0$ and $\forall i, \phi_i(0) \leq 1$.
+Under these assumptions, we have the following theorem:
+
+\paragraph{Theorem} Consider Procedure SDCA with $\alpha^{(0)} = 0$.
+Assume that $\forall i, \phi_i$ is $L$-Lipschitz (resp. $(1/\gamma)$-smooth).
+To obtain an expected duality gap of $\mathbb{E}[P(\overline{w})-D(\overline{\alpha})] \leq \epsilon_P$, it suffices to have a total number of iterations of
+$$T \geq n + \max\left(0, \left\lceil n \log \left(\dfrac{\lambda n}{2 L^2} \right) \right\rceil \right) + \dfrac{20 L^2}{\lambda \epsilon_P} \quad \left( \text{resp. } T > \left(n + \dfrac{1}{\lambda \gamma} \right) \log \left[ \dfrac{1}{(T-T_0)\epsilon_P} \left(n + \dfrac{1}{\lambda \gamma} \right) \right] \right)$$ 
+
+
+%=================================================================================================
+\section{Experiments}
+% 2 pages
+% (a) Description of the data set(s) considered / general problem associated with the data \\
+% (b) Description of the protocol of the experiments (setting of the hyperparameters/cross-validation procedure/evaluation methodology) \\
+% (c) Factual description of the type of results reported (explanation pertaining to the Figures, tables, etc) \\
+% (d) Interpretation and discussion of the results (comparison with the baselines, advantages of each algorithm, etc) \\
+
+\subsection{Implementation}
+
+\paragraph{}The experiments in this report were done with our own implementation, available on GitHub :
+\begin{center}
+    \url{ https://github.com/GuillaumeDesforges/enpc-malap-project-sdca }
+\end{center}
+
+\paragraph{}We implemented :
+\begin{itemize}
+	\item \texttt{Estimator} objects that can fit, predict and score themselves : logistic loss and square loss
+	\item \texttt{Optimizer} objects used for fitting : SGD and SDCA
+	\item projections : polynomial and gaussian
+	\item some data utilities
+\end{itemize}
+
+\subsection{Description of the chosen data sets}
+
+\paragraph{}We used our implementation on :
+\begin{itemize}
+	\item \textit{Arrhythmia} : \url{https://archive.ics.uci.edu/ml/datasets/Arrhythmia}
+	\item \textit{Adult} : \url{https://archive.ics.uci.edu/ml/datasets/adult}
+	\item some other data sets available on \textit{scikit-learn}: \textit{Labeled Faced Wild}, \textit{Forest covertypes}
+\end{itemize}
+
+\paragraph{}While the Arrhythmia data set has 452 instances, which is quite low, it has 279 features, which is quite high.
+On the other hand, the Adult data set has 48842 instances but only 14 features.
+
+\paragraph{}The Arrhythmia data set will help us to check the properties of SDCA when there are high-dimensional features.
+The Adult data set will help us to compare the SGD and SDCA when there are a large number of instances.
+
+\subsection{Use of closed forms and numerical issues}
+
+\paragraph{}In this report, we used the closed form presented above.
+The closed form for the logistic regression gave us numerous numerical issues.
+On some cases, we can end up with catastrophic cancellations due to either the $\log$ or the $\exp$.
+
+\paragraph{}A solution that is proposed by another study is to optimize a sub-problem with a modified Newton algorithm for each iteration, and thus avoid catastrophic cancellations. We implemented this modified Newton algorithm and tried to use it for the logistic regression on the data sets described above, but of course computation time was incredibly long comparing to the use of closed forms.
+
+\subsection{Choice of algorithm termination option}
+
+\paragraph{}Because of the stochastic behavior of the algorithm, the output is very sensitive to the iteration at which it stops.
+Indeed, coefficients vary suddenly, and the convergence is not really monotonous : at some point, it is uncertain whether the loss improves or not.
+
+\paragraph{}There are essentially two ways of taking this into account.
+The first method is to stop at a random step, which actually yields good results.
+The second method consists in averaging the last $\alpha^{(t)}$ obtained by the algorithm, making sure that the local variations of $\alpha$ are corrected.
+
+\paragraph{}Another way to stop the algorithm is to use the duality gap, with the theorem described in Section 1.6. However, as this theorem presents a sufficient condition for the total number of iterations, this number is much higher than the real total number of iterations needed to have an acceptable duality gap.
+
+% Transition : 
+\paragraph{}Considering this analysis, we decided to choose the average output option and to set manually the number of iterations needed for our experimentation. As explained in the studied articles, we can note that this stopping time $T_0$ can be chosen between $1$ to $T$, and is generally chosen equal to $T/2$. However, in practice, these parameters are not required as the duality gap is used to terminate the algorithm.
+
+\subsection{Choice of hyperparameters}
+
+\paragraph{}The SGD has two hyperparameters \texttt{c} and \texttt{eps} while the SDCA has only one hyperparameter \texttt{c}.
+In order to compare the algorithms, we chose to select the best hyperparameters for each optimizer and for each data set using a validation procedure with a learning set and a validation set.
+On every data set, for each hyperparameter, we computed the accuracy after a given number of epochs for a range of values and a certain validation set, and plotted them.
+
+\paragraph{}Figures are gathered in appendix \ref{appendix-hyperparams}. We selected the following hyperparameter values :
+\begin{table}[H]
+	\centering
+	\begin{tabular}{rccc}
+		\toprule
+		Data set   & SGD \texttt{c} & SGD \texttt{eps} & SDCA \texttt{c}\\
+		\midrule
+		Arrhythmia & $10^3$         & $10^{-5}$        & $10^{-1}$      \\
+		Adults     & $10^4$         & $5.10^{-6}       $ & $5.10^{-2}$  \\
+		\bottomrule
+	\end{tabular}
+	\caption{Hyperparameter values used for each data set.}
+\end{table}
+
+\subsection{Stopping time}
+
+\paragraph{}With such data sets and hyper parameters, we compute the sufficient stopping time for a dual gap lower than $10^{-3}$.
+\begin{table}[H]
+	\centering
+	\begin{tabular}{rc}
+		\toprule
+		Data set   & Sufficient stopping time\\
+		\midrule
+		Arrhythmia & 401549                \\
+		Adults     & 629840                \\
+		\bottomrule
+	\end{tabular}
+	\caption{Sufficient stopping time for each data set.}
+\end{table}
+
+\paragraph{}These values perfectly illustrate the explanation about the sufficient condition in Section 2.4. In practice, only some tens of thousands, or even less, are sufficient to have a good convergence.
+
+\subsection{Comparison between SGD and SDCA on used data sets}
+
+\paragraph{}We fit a logistic regression model on the data sets with the hyper parameters detailed above.
+On each data set, we used 85\% of the data for training and 15\% of the data for testing. Figures are gathered in appendix \ref{appendix-results}.
+
+\paragraph{}We can see that after a consequent number of iterations, the accuracy of the estimator trained with the SDCA stops to vary, while the accuracy of the one trained with the SGD continues to vary and reaches better accuracy levels. In practice, it is highly probable that the SDCA gets trapped in a local minimum. Indeed, the structure itself of the algorithm makes it impossible to escape.
+
+\paragraph{}While the SGD can perform slight jumps thanks to the learning rate \texttt{eps}, the SDCA only optimizes along one coordinate. If it is trapped into a local minimum, it cannot vary anymore.
+
+\paragraph{}In our experiment, on the one hand the SGD has a better accuracy than the SDCA. On the other hand, the convergence of the SDCA is much clearer.
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{arrhythmia.png}
+		\caption{Arrhythmia data set}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{adults.png}
+		\caption{Adults data set}
+	\end{subfigure}
+	\caption{Evolution of the accuracy during the learning for the SGD and the SDCA.}
+\end{figure}
+
+%=================================================================================================
+\section*{Conclusion}
+% 1/2 page
+% (a) summary \\
+% (b) main conclusions and take home messages \\
+% (c) Remaining questions/ future directions (only if relevant) \\
+
+\paragraph{}In this report, we summarized most of what is needed to understand the SDCA : its goal, its theoretical framework and its algorithm.
+While our implementation of the SDCA for logistic regression seems to work, it did not yield better performance than SGD for our experiments.
+
+\paragraph{}On the other hand, the SGD can keep fluctuating when the SDCA really converges.
+Depending on the problem, it can be a real advantage.
+Other tracks need to be investigated in order to improve the performance of the SDCA, such as the resolution of numerical issues for some losses or the use of the SDCA on other data sets.
+
+
+
+%=================================================================================================
+\section*{References}
+
+% TODO references
+
+\paragraph{}This report is based on two main studies:
+\begin{itemize}
+    \item \textit{Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization} 
+(S. Shalev-Shwartz and T. Zhang, 2013)
+from \url{http://www.jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf}
+was our main interest. This paper compiles many theoretical results on the SDCA and gives a clear algorithm.
+    \item \textit{Dual Coordinate Descent Methods for Logistic Regression and Maximum Entropy Models} 
+(H.-F. Yu, F.-L. Huang, C.-J. Lin, 2011) 
+from \url{https://www.csie.ntu.edu.tw/~cjlin/papers/maxent_dual.pdf}
+gives interesting insight for the logistic regression case, with a modified Newton method 
+for each iteration step instead of the approximation of the closed form, which helps against 
+the numerical issues.
+\end{itemize}
+
+
+
+
+
+%=================================================================================================
+%=================================================================================================
+\newpage
+\appendix
+
+
+%=================================================================================================
+\section{Losses used}
+\label{appendix-losses}
+
+\paragraph{}Used loss functions, convex conjugates and closed form of solutions of problem (*):
+
+\begin{itemize}
+    \item \textbf{Squared loss:}
+			$$\phi_i(a) = (a-y_i)^2$$
+			$$\phi_i^{*}(-a) = -ay_i+a^2/4$$
+			$$\Delta \alpha_i = \dfrac{y_i-x_i^\top w^{(t-1)}-0.5\alpha_i^{(t-1)}}{0.5+\norm{x_i}^2/(\lambda n))}$$
+			\\
+	\item \textbf{Log loss:}
+			$$\phi_i(a) = \log(1+\exp(-y_ia))$$
+			$$\phi_i^{*}(-a) = -ay_i\log(ay_i) + (1-ay_i)\log(1-ay_i)$$
+			$$\Delta \alpha_i = \dfrac{(1+\exp(x_i^\top w^{(t-1)}y_i))^{-1}y_i-\alpha_i^{(t-1)}}{\max(1,0.25+\norm{x_i}^2/(\lambda n))}$$
+			\\
+	\item 	\textbf{Absolute deviation loss:}
+			$$\phi_i(a) = \abs{a-y_i}$$
+			$$\phi_i^{*}(-a) = -ay_i, \ a \in [-1,1]$$
+			$$\Delta \alpha_i = \max \left( 1, \min \left( 1, \dfrac{y_i-x_i^\top w^{(t-1)}}{\norm{x_i}^2/(\lambda n)} + \alpha_i^{(t-1)} \right) \right) - \alpha_i^{(t-1)}$$
+			\\
+	\item \textbf{($\gamma$-smoothed) Hinge loss:}
+			$$\phi_i(a) = \max\{0,1-y_ia\}$$
+			$$\phi_i^{*}(-a) = -ay_i + \gamma a^2/2, \ ay_i \in [0,1]$$
+			$$\Delta \alpha_i = y_i \max \left( 0, \min \left( 1, \dfrac{1-x_i^\top w^{(t-1)} y_i-\gamma \alpha_i^{(t-1)}y_i}{\norm{x_i}^2/(\lambda n)+\gamma} + \alpha_i^{(t-1)} y_i \right) \right) - \alpha_i^{(t-1)}$$
+			\\
+\end{itemize}
+
+\paragraph{}$\Delta \alpha_i$ is the notation we use to represent the increment to add to $\alpha_i$ (one coordinate, at a given iteration) to maximize the objective function with respect to that coordinate.
+
+
+%=================================================================================================
+\section{Hyperparameters validation}
+\label{appendix-hyperparams}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{arrhythmia_sgd_c.png}
+		\caption{\texttt{c} for the SGD for the data set Arrhythmia}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{adults_sgd_c.png}
+		\caption{\texttt{c} for the SGD for the data set Adults}
+	\end{subfigure}
+
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{arrhythmia_sgd_eps.png}
+		\caption{\texttt{eps} for the SGD for the data set Arrhythmia}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{adults_sgd_eps.png}
+		\caption{\texttt{eps} for the SGD for the data set Adults}
+	\end{subfigure}
+
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{arrhythmia_sdca_c.png}
+		\caption{\texttt{c} for the SDCA for the data set Arrhythmia}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{adults_sdca_c.png}
+		\caption{\texttt{c} for the SDCA for the data set Adults}
+	\end{subfigure}
+	\caption{Selection of the hyperparameters \texttt{c} and \texttt{eps} for the SGD and the SDCA.}
+\end{figure}
+
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{SGD_identity_arrhythmia.png}
+		\caption{\texttt{h} for the SGD for the data set Arrhythmia}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{SGD_identity_adults.png}
+		\caption{\texttt{h} for the SGD for the data set Adults}
+	\end{subfigure}
+
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{SDCA_identity_arrhythmia.png}
+		\caption{\texttt{h} for the SDCA for the data set Arrhythmia}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{SDCA_identity_adults.png}
+		\caption{\texttt{h} for the SDCA for the data set Adults}
+	\end{subfigure}
+
+	\caption{Selection of the gaussian projection hyperparameter \texttt{h} for the SGD and the SDCA.}
+\end{figure}
+
+
+%=================================================================================================
+\section{Experimental results}
+\label{appendix-results}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{arrhythmia_sgd.png}
+		\caption{Arrhythmia data set with SGD}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{adults_sgd.png}
+		\caption{Adults data set with SGD}
+	\end{subfigure}
+
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{arrhythmia_sdca.png}
+		\caption{Arrhythmia data set with SDCA}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{adults_sdca.png}
+		\caption{Adults data set with SDCA}
+	\end{subfigure}
+
+	\caption{Evolution of the loss during the learning for the SGD and the SDCA.}
+\end{figure}
+
+
+\end{document}
