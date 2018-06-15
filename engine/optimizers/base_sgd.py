@@ -30,16 +30,24 @@ class BaseSGD(BaseOptimizer):
             loss = self.loss(x, y, w)
             hist_loss.append(loss)
 
-        iter_max = int(n*epochs)
+        best_w = np.copy(w)
+        best_loss = self.loss(x, y, w)
+
+        iter_max = int(n * epochs)
         for iter_k in range(iter_max):
             i = np.random.randint(n)
             w += self.increment(x[i], y[i], w)
+
+            loss = self.loss(x, y, w)
+            if loss < best_loss:
+                best_loss = loss
+                best_w = np.copy(w)
+
             if save_hist:
                 hist_w.append(np.copy(w))
-                loss = self.loss(x, y, w)
                 hist_loss.append(loss)
 
         if save_hist:
             return hist_w, hist_loss
 
-        return w
+        return best_w
