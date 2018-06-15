@@ -14,6 +14,7 @@ from engine.optimizers.sdca_square import SquareSDCA
 from engine.optimizers.sgd_square import SquareSGD
 
 from engine.utils.normalize import Normalizer
+from engine.utils.projections import identity_projection, build_polynomial_projection, build_gaussian_projection
 
 from sklearn.model_selection import train_test_split
 
@@ -37,12 +38,23 @@ Y = np.where(Y == 1, 1, -1)
 normalizer = Normalizer(X)
 Xnorm = normalizer.normalize(X)
 
+# get historic of accuracy
+def get_hist_accuracy(x, y, hist_w, estimator):
+    best_w = np.copy(estimator.w)
+    hist_accuracy = []
+    for w in hist_w:
+        estimator.w = w
+        accuracy = estimator.score_accuracy(x, y)
+        hist_accuracy.append(accuracy)
+    estimator.w = np.copy(best_w)
+    return hist_accuracy
+
 
 ## paramètre C par validation croisée
 
 if False:
-    X_train, X_test, y_train, y_test = train_test_split(Xnorm, Y, test_size=0.1)
-    vect_param = 10**np.linspace(-2, 4, 30)
+    X_train, X_test, y_train, y_test = train_test_split(Xnorm, Y, test_size=0.15)
+    vect_param = 10**np.linspace(-4, 5, 70)
     
     vect_train_accuracy_sgd = []
     vect_train_accuracy_sdca = []
@@ -50,13 +62,16 @@ if False:
     vect_test_accuracy_sgd = []
     vect_test_accuracy_sdca = []
     
+    # projection
+    chosen_proj = identity_projection
+    
     for param in vect_param:
         # make estimator
         sgd = LogisticSGD(c=param, eps=1e-6)
-        sgd_clf = LogisticRegression(optimizer=sgd)
+        sgd_clf = LogisticRegression(optimizer=sgd, projection=chosen_proj)
         
         sdca = LogisticSDCA(c=param)
-        sdca_clf = LogisticRegression(optimizer=sdca)
+        sdca_clf = LogisticRegression(optimizer=sdca, projection=chosen_proj)
         
         # train estimators without history
         sgd_clf.fit(X_train, y_train, epochs=nb_epoch, save_hist=False)
@@ -72,27 +87,74 @@ if False:
     plt.plot(np.log10(vect_param), vect_train_accuracy_sgd, 'b', label="train")
     plt.plot(np.log10(vect_param), vect_test_accuracy_sgd, 'r', label="test")
     plt.title("Accuracy SGD")
+    plt.xlabel("log(c)")
+    plt.ylabel("accuracy")
     plt.legend()
     
     plt.figure()
     plt.plot(np.log10(vect_param), vect_train_accuracy_sdca, 'b', label="train")
     plt.plot(np.log10(vect_param), vect_test_accuracy_sdca, 'r', label="test")
     plt.title("Accuracy SDCA")
+    plt.xlabel("log(c)")
+    plt.ylabel("accuracy")
     plt.legend()
 
 '''
-Bon paramètre => c=10
+Bon paramètre :
+    c = 10**3 pour SGD
+    c = 10**-1 pour SDCA
 '''
+c_sgd = 10**3
+c_sdca = 10**-1
+
+## Paramètre eps pour SGD par validation croisée
+
+if False:
+    X_train, X_test, y_train, y_test = train_test_split(Xnorm, Y, test_size=0.15)
+    vect_param = 10**np.linspace(-10, 0, 70)
+    
+    vect_train_accuracy_sgd = []
+    
+    vect_test_accuracy_sgd = []
+    
+    # projection
+    chosen_proj = identity_projection
+    
+    for param in vect_param:
+        # make estimator
+        sgd = LogisticSGD(c=10**3, eps=param)
+        sgd_clf = LogisticRegression(optimizer=sgd, projection=chosen_proj)
+        
+        # train estimators without history
+        sgd_clf.fit(X_train, y_train, epochs=nb_epoch, save_hist=False)
+        
+        vect_train_accuracy_sgd.append(sgd_clf.score_accuracy(X_train, y_train))
+        
+        vect_test_accuracy_sgd.append(sgd_clf.score_accuracy(X_test, y_test))
+    
+    plt.figure()
+    plt.semilogx(vect_param, vect_train_accuracy_sgd, 'b', label="train")
+    plt.semilogx(vect_param, vect_test_accuracy_sgd, 'r', label="test")
+    plt.title("Accuracy of SGD vs. hyperparameter epsilon \non data set Arrhythmia")
+    plt.xlabel("Epsilon")
+    plt.ylabel("Accuracy")
+    plt.legend()
+
+'''
+Best hyperparameter
+eps = 5*10**-6 for SGD
+'''
+eps_sgd = 5*10**-6
     
 
 ## Training
 
-if False:
+if True:
     # make estimator
-    sgd = LogisticSGD(c=10, eps=1e-7)
+    sgd = LogisticSGD(c=c_sgd, eps=eps_sgd)
     sgd_clf = LogisticRegression(optimizer=sgd)
     
-    sdca = LogisticSDCA(c=10)
+    sdca = LogisticSDCA(c=c_sdca)
     sdca_clf = LogisticRegression(optimizer=sdca)
     
     # train estimator with history
