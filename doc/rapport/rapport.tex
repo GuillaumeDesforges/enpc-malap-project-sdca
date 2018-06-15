@@ -19,10 +19,10 @@
 
 % graphics
 \usepackage{graphicx}
-
-% float
 % especially to force text not to skip images
 \usepackage{float}
+% for mosaic of figures
+\usepackage{subcaption}
 
 % indent first paragraph of section
 \usepackage{indentfirst}
@@ -308,20 +308,20 @@ On every data set, for each hyperparameter, We computed the accuracy after a giv
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[height=6cm]{figs/hyperparams/SGD_c.png}
-	\caption{Selection of the hyperparameter \texttt{c} for the SGD for the data set Arrhythmia}
-\end{figure}
+	\begin{subfigure}[b]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/hyperparams/SGD_c.png}
+		\caption{\texttt{c} for the SGD for the data set Arrhythmia}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/hyperparams/SGD_eps.png}
+		\caption{\texttt{eps} for the SGD for the data set Arrhythmia}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/hyperparams/SDCA_c.png}
+		\caption{\texttt{c} for the SDCA for the data set Arrhythmia}
+	\end{subfigure}
 
-\begin{figure}[H]
-	\centering
-	\includegraphics[height=6cm]{figs/hyperparams/SGD_eps.png}
-	\caption{Selection of the hyperparameter \texttt{eps} for the SGD for the data set Arrhythmia}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[height=6cm]{figs/hyperparams/SDCA_c.png}
-	\caption{Selection of the hyperparameter \texttt{c} for the SDCA for the data set Arrhythmia}
+	\caption{Selection of the hyperparameters}
 \end{figure}
 
 We selected the hyper parameters values :
@@ -359,6 +359,19 @@ Lorem ipsum.
 
 % TODO references
 
+This report is based on two main studies.
+
+\textit{Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization} 
+(S. Shalev-Shwartz and T. Zhang, 2013)
+from \url{http://www.jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf}
+was our main interest. This paper compiles many theoretical results on the SDCA and gives a clear algorithm.
+
+\textit{Dual Coordinate Descent Methods for Logistic Regression and Maximum Entropy Models} 
+(H.-F. Yu, F.-L. Huang, C.-J. Lin, 2011) 
+from \url{https://www.csie.ntu.edu.tw/~cjlin/papers/maxent_dual.pdf}
+gives interesting insight for the logistic regression case, with a modified Newton method 
+for each iteration step instead of the approximation of the closed form, which helps against 
+the numerical issues.
 
 
 %=================================================================================================
