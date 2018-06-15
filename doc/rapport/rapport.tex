@@ -124,6 +124,7 @@ We say that a solution $w$ is $\epsilon_P$-sub-optimal if $P(w) - P(w^{*}) \leq 
 We analyze here the required runtime to find an $\epsilon_P$-sub-optimal solution using SDCA.
 
 Let $\phi_i^{*} : \mathbb{R} \rightarrow \mathbb{R}$ be the convex conjugate of $\phi_i$ : $\phi_i^{*}(u) = \max_z (zu-\phi_i(z))$.
+
 The dual problem of \eqref{primal} is defined as follows:
 \begin{equation}
     \max_{\alpha \in \mathbb{R}^n} D(\alpha) = \left[ \dfrac{1}{n} \sum_{i=1}^n -\phi_i^{*}(-\alpha_i) - \dfrac{\lambda}{2}\norm{\dfrac{1}{\lambda n}\sum_{i=1}^n \alpha_ix_i}^2 \right]
@@ -140,15 +141,11 @@ Thanks to classic optimization results, we then have :
 \begin{equation}
 	P(w^{*}) = D(\alpha^{*})
 \end{equation}
-\begin{equation}
-	\forall (w,\alpha), P(w) = D(\alpha)
-\end{equation}
 
-We define the duality gap as $P(w(\alpha)) - P(w^{*})$.
+We define the duality gap as $P(w(\alpha)) - D(\alpha)$.
+The duality gap reaches 0 when $\alpha$ is optimal.
 
 The SDCA algorithm is described further.
-$T_0$ can be chosen between $1$ to $T$, and is generally chosen equal to $T/2$.
-However, in pratice, these parameters are not required as the duality gap is used to terminate the algorithm.
 
 \subsection{Focus on the logistic regression}
 
@@ -263,7 +260,6 @@ We implemented :
 We used our implementation on :
 
 \begin{itemize}
-	\item Two gaussians to check that our implementation works
 	\item \textit{Arrhythmia} : \url{https://archive.ics.uci.edu/ml/datasets/Arrhythmia}
 	\item \textit{Adults} : \url{https://archive.ics.uci.edu/ml/datasets/adult}
 \end{itemize}
@@ -306,36 +302,7 @@ In order to compare the algorithm, we chose to select the best hyperparameters f
 
 On every data set, for each hyperparameter, We computed the accuracy after a given number of epochs for a range of values, and plotted them.
 
-\begin{figure}[H]
-	\centering
-	\begin{subfigure}[t]{0.45\linewidth}
-		\includegraphics[width=\linewidth]{figs/hyperparams/arrhythmia_sgd_c.png}
-		\caption{\texttt{c} for the SGD for the data set Arrhythmia}
-	\end{subfigure}
-	\begin{subfigure}[t]{0.45\linewidth}
-		\includegraphics[width=\linewidth]{figs/hyperparams/adults_sgd_c.png}
-		\caption{\texttt{c} for the SGDfor the data set Adults}
-	\end{subfigure}
-
-	\begin{subfigure}[t]{0.45\linewidth}
-		\includegraphics[width=\linewidth]{figs/hyperparams/arrhythmia_sgd_eps.png}
-		\caption{\texttt{eps} for the SGD for the data set Arrhythmia}
-	\end{subfigure}
-	\begin{subfigure}[t]{0.45\linewidth}
-		\includegraphics[width=\linewidth]{figs/hyperparams/adults_sgd_eps.png}
-		\caption{\texttt{eps} for the SGD for the data set Adults}
-	\end{subfigure}
-
-	\begin{subfigure}[t]{0.45\linewidth}
-		\includegraphics[width=\linewidth]{figs/hyperparams/arrhythmia_sdca_c.png}
-		\caption{\texttt{c} for the SDCA for the data set Arrhythmia}
-	\end{subfigure}
-	\begin{subfigure}[t]{0.45\linewidth}
-		\includegraphics[width=\linewidth]{figs/hyperparams/adults_sdca_c.png}
-		\caption{\texttt{c} for the SDCA for the data set Adults}
-	\end{subfigure}
-	\caption{Selection of the hyperparameters}
-\end{figure}
+The figures are in appendix \ref{appendix-hyperparams}.
 
 We selected the hyper parameters values :
 
@@ -343,58 +310,50 @@ We selected the hyper parameters values :
 	\centering
 	\begin{tabular}{rccc}
 		\toprule
-		Data set & SGD \texttt{c} & SGD \texttt{eps} & SDCA \texttt{c}\\
+		Data set   & SGD \texttt{c} & SGD \texttt{eps} & SDCA \texttt{c}\\
 		\midrule
-		Arrhythmia & $10^3$ & $10^{-5}$ & $10^{-1}$\\
-		Adults     & $10^4$ & $5.10^{-6}$ & $5.10^{-2}$\\
+		Arrhythmia & $10^3$         & $10^{-5}$        & $10^{-1}$      \\
+		Adults     & $10^4$         & $5.10^{-6}       $ & $5.10^{-2}$  \\
 		\bottomrule
 	\end{tabular}
 	\caption{Hyper parameter values used}
+\end{table}
+
+\subsection{Stopping time}
+
+With such data sets and hyper parameters, we compute the expected stopping time for a dual gap lower than $10^{-3}$.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{rc}
+		\toprule
+		Data set   & expected stopping time\\
+		\midrule
+		Arrhythmia & 401549                \\
+		Adults     & 629840                \\
+		\bottomrule
+	\end{tabular}
+	\caption{Expected stopping time}
 \end{table}
 
 \subsection{Comparison between SGD and SDCA on used data sets}
 
 We fit a logistic regression model on the datasets with the hyper parameters detailed above.
 
-\begin{figure}[H]
-	\centering
-	\begin{subfigure}[t]{0.45\linewidth}
-		\includegraphics[width=\linewidth]{figs/loss/arrhythmia_sgd.png}
-		\caption{Arrhythima data set with SGD}
-	\end{subfigure}
-	\begin{subfigure}[t]{0.45\linewidth}
-		\includegraphics[width=\linewidth]{figs/loss/adults_sgd.png}
-		\caption{Adults data set with SGD}
-	\end{subfigure}
+On each dataset, we used 85\% of the data for trainign and 15\% of the data for testing.
 
-	\begin{subfigure}[t]{0.45\linewidth}
-		\includegraphics[width=\linewidth]{figs/loss/arrhythmia_sdca.png}
-		\caption{Arrhythima data set with SDCA}
-	\end{subfigure}
-	\begin{subfigure}[t]{0.45\linewidth}
-		\includegraphics[width=\linewidth]{figs/loss/adults_sdca.png}
-		\caption{Adults data set with SDCA}
-	\end{subfigure}
-
-	\caption{Evolution of the loss during the learning}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\begin{subfigure}[t]{0.45\linewidth}
-		\includegraphics[width=\linewidth]{figs/accuracy/arrhythmia.png}
-		\caption{Arrhythima data set}
-	\end{subfigure}
-	\begin{subfigure}[t]{0.45\linewidth}
-		\includegraphics[width=\linewidth]{figs/accuracy/adults.png}
-		\caption{Adults data set}
-	\end{subfigure}
-	\caption{Evolution of the accuracy during the learning}
-\end{figure}
+The figures are in appendix \ref{appendix-results}.
 
 In our experiment, the SDCA did not perform that well.
 
 We can see that after a consequent number of iterations, the accuracy of the estimator trained with SDCA stops to move, while the accuracy of the one trained with SGD can keep moving, and reaches better accuracy levels.
+
+In terms of performance, we had the SGD beating the SDCA.
+On the other hand, the convergence of the SDCA is much clearer.
+
+We can also note that the expected stopping time is way above what we get in practice.
+This is not that surprising as the theoretical stopping time that we computed were only sufficiant conditions.
+Thus, it is clear that the condition is met in our experiments.
 
 %=================================================================================================
 \section*{Conclusion}
@@ -403,9 +362,17 @@ We can see that after a consequent number of iterations, the accuracy of the est
 % (b) main conclusions and take home messages \\
 % (c) Remaining questions/ future directions (only if relevant) \\
 
+In this report, we summarized most of what is needed to understand the SDCA : its goal, its theorical framework and its algorithm.
+
+While our implementation of the SDCA for logistic regression seems to work, it did not yield better performance than SGD.
+On the other hand, the SGD can keep fluctuating when the SDCA really converges.
+Depending on the problem, it can be a real advantage.
+
+Other tracks need to be investigated in order to improve the performance of the SDCA.
+% Such as ...
 
 
-
+\newpage
 %=================================================================================================
 \section*{References}
 
@@ -478,6 +445,84 @@ the numerical issues.
 \end{center}
 
 $\Delta \alpha_i$ is the notation we use to represent the increment to add to $\alpha_i$ (one coordinate, at a given iteration) to maximize the objective function with respect to that coordinate.
+
+
+%=================================================================================================
+\section{Hyper parameters validation}
+\label{appendix-hyperparams}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/hyperparams/arrhythmia_sgd_c.png}
+		\caption{\texttt{c} for the SGD for the data set Arrhythmia}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/hyperparams/adults_sgd_c.png}
+		\caption{\texttt{c} for the SGDfor the data set Adults}
+	\end{subfigure}
+
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/hyperparams/arrhythmia_sgd_eps.png}
+		\caption{\texttt{eps} for the SGD for the data set Arrhythmia}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/hyperparams/adults_sgd_eps.png}
+		\caption{\texttt{eps} for the SGD for the data set Adults}
+	\end{subfigure}
+
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/hyperparams/arrhythmia_sdca_c.png}
+		\caption{\texttt{c} for the SDCA for the data set Arrhythmia}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/hyperparams/adults_sdca_c.png}
+		\caption{\texttt{c} for the SDCA for the data set Adults}
+	\end{subfigure}
+	\caption{Selection of the hyperparameters}
+\end{figure}
+
+
+%=================================================================================================
+\section{Experiment results}
+\label{appendix-results}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/loss/arrhythmia_sgd.png}
+		\caption{Arrhythima data set with SGD}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/loss/adults_sgd.png}
+		\caption{Adults data set with SGD}
+	\end{subfigure}
+
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/loss/arrhythmia_sdca.png}
+		\caption{Arrhythima data set with SDCA}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/loss/adults_sdca.png}
+		\caption{Adults data set with SDCA}
+	\end{subfigure}
+
+	\caption{Evolution of the loss during the learning}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/accuracy/arrhythmia.png}
+		\caption{Arrhythima data set}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\linewidth}
+		\includegraphics[width=\linewidth]{figs/accuracy/adults.png}
+		\caption{Adults data set}
+	\end{subfigure}
+	\caption{Evolution of the accuracy during the learning}
+\end{figure}
+
 
 
 \end{document}
