@@ -146,6 +146,77 @@ def eval_eps(data, labels, vect_param, nb_epoch, data_name, param_c=10**1):
     plt.ylabel("Accuracy")
     plt.legend()
 
+# get historic of accuracy
+def get_hist_accuracy(x, y, hist_w, estimator):
+    best_w = np.copy(estimator.w)
+    hist_accuracy = []
+    for w in hist_w:
+        estimator.w = w
+        accuracy = estimator.score_accuracy(x, y)
+        hist_accuracy.append(accuracy)
+    estimator.w = np.copy(best_w)
+    return hist_accuracy
+
+def plot_training(data, labels, nb_epoch, data_name, c_sgd, c_sdca, eps_sgd):
+    X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.15)
+    
+    # make estimator
+    sgd = LogisticSGD(c=c_sgd, eps=eps_sgd)
+    sgd_clf = LogisticRegression(optimizer=sgd)
+    
+    sdca = LogisticSDCA(c=c_sdca)
+    sdca_clf = LogisticRegression(optimizer=sdca)
+    
+    # train estimator with history
+    sgd_hist_w, sgd_hist_loss = sgd_clf.fit(X_train, y_train, epochs=nb_epoch, save_hist=True)
+    sgd_hist_w = np.array(sgd_hist_w)
+    
+    # plot histories
+    '''plt.figure()
+    plt.title("Evolution of the weights : SGD")
+    for d in range(sgd_hist_w.shape[1]):
+        plt.plot(sgd_hist_w[:, d])'''
+    
+    plt.figure()
+    plt.plot(sgd_hist_loss)
+    plt.title("SGD learning loss vs. iteration\non data set " + data_name)
+    plt.xlabel("Iteration")
+    plt.ylabel("Loss")
+    
+    
+    # final accuracy
+    print("final accuracy SGD :", sgd_clf.score_accuracy(X_test, y_test))
+    
+    
+    # do it again with SDCA !
+    
+    sdca_hist_w, sdca_hist_loss = sdca_clf.fit(X_train, y_train, epochs=nb_epoch, save_hist=True)
+    sdca_hist_w = np.array(sdca_hist_w)
+    
+    '''plt.figure()
+    plt.title("Evolution of the weights : SDCA")
+    for d in range(sdca_hist_w.shape[1]):
+        plt.plot(sdca_hist_w[:, d])'''
+    
+    plt.figure()
+    plt.title("SDCA learning loss vs. iteration\non data set " + data_name)
+    plt.xlabel("Iteration")
+    plt.ylabel("Loss")
+    plt.plot(sdca_hist_loss)
+    
+    # final accuracy
+    print("final accuracy SDCA :", sdca_clf.score_accuracy(X_test, y_test))
+    
+    sgd_hist_accuracy = get_hist_accuracy(X_test, y_test, sgd_hist_w, sgd_clf)
+    sdca_hist_accuracy = get_hist_accuracy(X_test, y_test, sdca_hist_w, sdca_clf)
+    plt.figure()
+    plt.plot(sgd_hist_accuracy, c='b', label="SGD")
+    plt.plot(sdca_hist_accuracy, c='g', label="SDCA")
+    plt.title("Test accuracy vs. iteration\non data set " + data_name)
+    plt.xlabel("Iteration")
+    plt.ylabel("Accuracy")
+    plt.legend()
+
 def import_data_arrhythmia():
     # importation of data
     with open("datasets/Heart_disease/heart_disease_data.pkl", 'rb') as file:
@@ -193,15 +264,15 @@ def main():
 if __name__ == '__main__':
     #main()
     
-    #x, y = import_data_arrhythmia()
+    x, y = import_data_arrhythmia()
     
-    x, y = load_adults_dataset()
+    '''x, y = load_adults_dataset()
     N, dim = x.shape
     n_sample = 1200
     index = np.arange(N)
     np.random.shuffle(index)
     x = x[index[:n_sample],:]
-    y = y[index[:n_sample]]
+    y = y[index[:n_sample]]'''
     
     #x, y = load_sklearn_dataset(data_set_name="lfw", n=20)
     
@@ -214,9 +285,25 @@ if __name__ == '__main__':
     data_name = "Arrhythmia"
     eval_C(x, y, vect_C, nb_epoch, data_name)'''
     
-    vect_eps = 10**np.linspace(-10, 0, 70)
+    '''vect_eps = 10**np.linspace(-10, 0, 70)
     nb_epoch = 10
     data_name = "Adults"
-    eval_eps(x, y, vect_eps, nb_epoch, data_name, param_c=10**4)
+    eval_eps(x, y, vect_eps, nb_epoch, data_name, param_c=10**4)'''
+    
+    # Arhythmia
+    c_sgd_arr = 10**3
+    c_sdca_arr = 10**-1
+    eps_sgd_arr = 10**-5
+    data_name = "Arrhythmia"
+    plot_training(x, y, nb_epoch=4, data_name=data_name, c_sgd=c_sgd_arr, c_sdca=c_sdca_arr, eps_sgd=eps_sgd_arr)
+    plot_training(x, y, nb_epoch=50, data_name=data_name, c_sgd=c_sgd_arr, c_sdca=c_sdca_arr, eps_sgd=eps_sgd_arr)
+    
+    # Adults
+    '''c_sgd_ad = 10**4
+    c_sdca_ad = 5*10**-2
+    eps_sgd_ad = 5*10**-6
+    data_name = "Adults"
+    plot_training(x, y, nb_epoch=4, data_name=data_name, c_sgd=c_sgd_ad, c_sdca=c_sdca_ad, eps_sgd=eps_sgd_ad)
+    plot_training(x, y, nb_epoch=50, data_name=data_name, c_sgd=c_sgd_ad, c_sdca=c_sdca_ad, eps_sgd=eps_sgd_ad)'''
     
     plt.show()

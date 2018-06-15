@@ -18,7 +18,7 @@ from engine.utils.projections import identity_projection, build_polynomial_proje
 
 from sklearn.model_selection import train_test_split
 
-from hyper_parameters_choice import eval_C, eval_eps
+from hyper_parameters_choice import eval_C, eval_eps, plot_training
 
 nomFichier = "datasets\Heart_disease\heart_disease_data.pkl"
 
@@ -40,16 +40,7 @@ Y = np.where(Y == 1, 1, -1)
 normalizer = Normalizer(X)
 Xnorm = normalizer.normalize(X)
 
-# get historic of accuracy
-def get_hist_accuracy(x, y, hist_w, estimator):
-    best_w = np.copy(estimator.w)
-    hist_accuracy = []
-    for w in hist_w:
-        estimator.w = w
-        accuracy = estimator.score_accuracy(x, y)
-        hist_accuracy.append(accuracy)
-    estimator.w = np.copy(best_w)
-    return hist_accuracy
+
 
 
 ## paramètre C par validation croisée
@@ -74,7 +65,7 @@ c_sdca = 10**-1
 
 
 
-if True:
+if False:
     vect_eps = 10**np.linspace(-10, 0, 70)
     nb_epoch = 20
     eval_eps(Xnorm, Y, vect_eps, nb_epoch, "Arrhythmia")
@@ -88,65 +79,11 @@ eps_sgd = 5*10**-6
 
 ## Training
 
-if False:
-    nb_epoch = 10
-    
-    # make estimator
-    sgd = LogisticSGD(c=c_sgd, eps=eps_sgd)
-    sgd_clf = LogisticRegression(optimizer=sgd)
-    
-    sdca = LogisticSDCA(c=c_sdca)
-    sdca_clf = LogisticRegression(optimizer=sdca)
-    
-    # train estimator with history
-    sgd_hist_w, sgd_hist_loss = sgd_clf.fit(Xnorm, Y, epochs=nb_epoch, save_hist=True)
-    sgd_hist_w = np.array(sgd_hist_w)
-    
-    # plot histories
-    '''plt.figure()
-    plt.title("Evolution of the weights : SGD")
-    for d in range(sgd_hist_w.shape[1]):
-        plt.plot(sgd_hist_w[:, d])'''
-    
-    plt.figure()
-    plt.plot(sgd_hist_loss)
-    plt.title("SGD loss vs. iteration\non data set Arrhythmia")
-    plt.xlabel("Iteration")
-    plt.ylabel("Loss")
-    
-    
-    # final accuracy
-    print("final accuracy SGD :", sgd_clf.score_accuracy(Xnorm, Y))
-    
-    
-    # do it again with SDCA !
-    
-    sdca_hist_w, sdca_hist_loss = sdca_clf.fit(Xnorm, Y, epochs=nb_epoch, save_hist=True)
-    sdca_hist_w = np.array(sdca_hist_w)
-    
-    '''plt.figure()
-    plt.title("Evolution of the weights : SDCA")
-    for d in range(sdca_hist_w.shape[1]):
-        plt.plot(sdca_hist_w[:, d])'''
-    
-    plt.figure()
-    plt.title("SDCA loss vs. iteration\non data set Arrhythmia")
-    plt.xlabel("Iteration")
-    plt.ylabel("Loss")
-    plt.plot(sdca_hist_loss)
-    
-    # final accuracy
-    print("final accuracy SDCA :", sdca_clf.score_accuracy(Xnorm, Y))
-    
-    sgd_hist_accuracy = get_hist_accuracy(Xnorm, Y, sgd_hist_w, sgd_clf)
-    sdca_hist_accuracy = get_hist_accuracy(Xnorm, Y, sdca_hist_w, sdca_clf)
-    plt.figure()
-    plt.plot(sgd_hist_accuracy, c='b', label="SGD")
-    plt.plot(sdca_hist_accuracy, c='g', label="SDCA")
-    plt.title("Accuracy vs. iteration\non data set Arrhythmia")
-    plt.xlabel("Iteration")
-    plt.ylabel("Accuracy")
-    plt.legend()
+
+
+if True:    
+    plot_training(Xnorm, Y, nb_epoch=4, data_name="Arrhythmia", c_sgd=10**3, c_sdca=10**-1, eps_sgd=10**-5)
+    plot_training(Xnorm, Y, nb_epoch=60, data_name="Arrhythmia", c_sgd=10**3, c_sdca=10**-1, eps_sgd=10**-5)
 
 
 # smoothed loss : without oscillations of convergence
