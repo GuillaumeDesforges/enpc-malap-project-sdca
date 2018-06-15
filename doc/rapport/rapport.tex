@@ -24,6 +24,12 @@
 % especially to force text not to skip images
 \usepackage{float}
 
+% indent first paragraph of section
+\usepackage{indentfirst}
+
+% for better tables
+\usepackage{booktabs}
+
 % metadata
 \title{Stochastic Dual Coordinate Descent}
 \author{Guillaume Desforges \& Michaël Karpe \& Matthieu Roux}
@@ -34,35 +40,39 @@
 \newcommand{\norm}[1]{\left\|#1 \right\|}
 
 % custom display
-\setlength{\parskip}{0.3em}
+% space between the lines
+\setlength{\parskip}{0.8em}
+% indentation size
 \setlength{\parindent}{0em}
+
+
 
 \begin{document}
 
+%=================================================================================================
+%=================================================================================================
 \maketitle
 
+
+%=================================================================================================
 %=================================================================================================
 \section*{Introduction}
 
 % Context
-\hspace{2em}
 In machine learning, the process of fitting a model to the data requires to solve an optimization problem.
 The difficulty resides in the fact that this optimization quickly becomes very complex when dealing with real problems.
 The Stochastic Gradient Descent (SGD) is a very popular algorithm to solve those problems because it has good convergence guaranties.
 Yet, the SGD does not have a good stopping criteria, and its solutions are often not accurate enough.
 
 % General problem studied, general methodology
-\hspace{2em}
 The Stochastic Dual Coordinate Ascent (SDCA) tries to solves the optimization problem by solving its dual problem.
 Instead of optimizing the weights, we optimize a dual variable from which we can compute the weights and thus solve the former.
 This method can give good results for specific problems : for instance, solving the dual problem of the SVM has proven to be effective and to give interesting results, with a linear convergence in some cases.
 
 % Focus and goal of the work presented
-\hspace{2em}
 In this report, we compile the key theoretical points necessary to have a global understanding of the SDCA.
 
 % Structure of the report
-\hspace{2em}
 First we introduce the SDCA and its principles.
 We then present the machine learning problem our report focuses on.
 Then we study computational performances of the method by trying to apply SDCA on concret problems.
@@ -71,6 +81,7 @@ Finally we conclude on SDCA strengths and weaknesses.
 \paragraph{Note} \textit{We especially added experimentations since the presentation of our poster.}
 
 
+%=================================================================================================
 %=================================================================================================
 \section{Purpose of the report: a new SGD-like method}
 % 3 pages
@@ -84,7 +95,6 @@ Finally we conclude on SDCA strengths and weaknesses.
 %A REFORMULER : COPIER / COLLER DE L'ARTICLE !
 %Surtout que eps_P sub optimal est défini plus loin...
 
-\hspace{2em}
 A simple approach for solving Support Vector Machine learning is Stochastic gradient Descent (SGD).
 SGD finds an $\epsilon_P$-sub-optimal solution in time $O(1/(\lambda \epsilon_P))$.
 This runtime does not depend on $n$ and therefore is favorable when $n$ is very large.
@@ -96,7 +106,6 @@ However, the SGD approach has several disadvantages:
     \item while SGD reaches a moderate accuracy quite fast, its convergence becomes rather slow when we are interested in more accurate solutions
 \end{enumerate}
 
-\hspace{2em}
 Therefore, an alternative approach is Dual Coordinate Ascent (DCA), which solves the dual problem instead of the primal problem.
 
 \subsection{General SDCA procedure}
@@ -207,14 +216,12 @@ The SDCA algorithm is described in the next subsection.
 
 \subsection{Computation of closed forms}
 
-\hspace{2em}
 In the studied articles, SDCA is computed either for $L$-Lipschitz loss functions or for $(1/\gamma)$-smooth loss functions.
 We recall that a function $\phi_i : \mathbb{R} \rightarrow \mathbb{R}$ is $L$-Lipschitz if $\forall a,b \in \mathbb{R}$, $\abs{\phi_i(a)-\phi_i(b)} \leq L \abs{a-b}$, and that a function $\phi_i : \mathbb{R} \rightarrow \mathbb{R}$ is $(1/\gamma)$-smooth if it is differentiable and its derivative is (1/$\gamma)$-Lipschitz.
 Moreover, if $\phi_i$ is $(1/\gamma)$-smooth, then $\phi_i^{*}$ is $\gamma$-strongly convex.
 The different loss functions used are described in the table below.
 For experimentation, we mainly focused on log loss and square loss.
 
-\hspace{2em}
 Some loss functions used in the report are described in the table in appendix \ref{appendix-losses}.
 
 \subsection{Algorithm termination}
@@ -231,7 +238,7 @@ $$T \geq n + \max\left(0, \left\lceil n \log \left(\dfrac{\lambda n}{2 L^2} \rig
 %=================================================================================================
 \section{Experiments}
 % 2 pages
-% (a) Description of the dataset(s) considered / general problem associated with the data \\
+% (a) Description of the data set(s) considered / general problem associated with the data \\
 % (b) Description of the protocol of the experiments (setting of the hyperparameters/cross-validation procedure/evaluation methodology) \\
 % (c) Factual description of the type of results reported (explanation pertaining to the Figures, tables, etc) \\
 % (d) Interpretation and discussion of the results (comparison with the baselines, advantages of each algorithm, etc) \\
@@ -251,7 +258,7 @@ We implemented :
 	\item some data utilities
 \end{itemize}
 
-\subsection{Description of the chosen datasets}
+\subsection{Description of the chosen data sets}
 
 We used our implementation on :
 
@@ -261,23 +268,18 @@ We used our implementation on :
 	\item \textit{Adults} : \url{https://archive.ics.uci.edu/ml/datasets/adult}
 \end{itemize}
 
-While the Arrhythmia dataset has 452 instances, which is quite low, it has 279 features, which is quite high.
-On the other hand, the Adult dataset has 48842 instances but only 14 features.
+While the Arrhythmia data set has 452 instances, which is quite low, it has 279 features, which is quite high.
+On the other hand, the Adult data set has 48842 instances but only 14 features.
 
-The Arrhythmia dataset will help us check the properties of SDCA when there are many features.
-The Adult dataset will help us compare the SGD and SDCA when there are many instances.
+The Arrhythmia data set will help us check the properties of SDCA when there are many features.
+The Adult data set will help us compare the SGD and SDCA when there are many instances.
 
 \subsection{Use of closed forms and numerical issues}
 
 In this report, we used the closed form presented above.
 The closed form for the logistic regression gave us numerous numerical issues.
 
-% TODO développer
-
-% TODO supprimer ces commentaires
-% C'EST l'INVERSE !!! @MichaelKarpe
-% le papier sur la forme non close passe son temps à vouloir régler les problèmes numériques
-% After having fixed or bypassed numeric issues thanks to the use of closed forms, we can discuss the choice of the different parameters.
+On some cases, we can end up with catastrophic cancelations due to either the $\log$ or the $\exp$.
 
 A solution that is proposed by another study is to optimize a subproblem with a modified Newton algorithm for each iteration, and thus avoid catastrophic cancelations.
 
@@ -307,37 +309,37 @@ On every data set, for each hyperparameter, We computed the accuracy after a giv
 \begin{figure}[H]
 	\centering
 	\includegraphics[height=6cm]{figs/hyperparams/SGD_c.png}
-	\caption{Selection of the hyperparameter \texttt{c} for the SGD for the dataset Arrhythmia}
+	\caption{Selection of the hyperparameter \texttt{c} for the SGD for the data set Arrhythmia}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[height=6cm]{figs/hyperparams/SGD_eps.png}
-	\caption{Selection of the hyperparameter \texttt{eps} for the SGD for the dataset Arrhythmia}
+	\caption{Selection of the hyperparameter \texttt{eps} for the SGD for the data set Arrhythmia}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[height=6cm]{figs/hyperparams/SDCA_c.png}
-	\caption{Selection of the hyperparameter \texttt{c} for the SDCA for the dataset Arrhythmia}
+	\caption{Selection of the hyperparameter \texttt{c} for the SDCA for the data set Arrhythmia}
 \end{figure}
 
 We selected the hyper parameters values :
 
 \begin{table}[H]
 	\centering
-	\begin{tabular}{|r|c|c|c|}
-		\hline
+	\begin{tabular}{rccc}
+		\toprule
 		Data set & SGD \texttt{c} & SGD \texttt{eps} & SDCA \texttt{c}\\
-		\hline
+		\midrule
 		Arrhythmia & 1 & 1 & 1\\
 		Adults & 1 & 1 & 1\\
-		\hline
+		\bottomrule
 	\end{tabular}
 	\caption{Hyper parameter values used}
 \end{table}
 
-\subsection{Comparison between SGD and SDCA on used datasets}
+\subsection{Comparison between SGD and SDCA on used data sets}
 
 Lorem ipsum.
 
@@ -350,13 +352,21 @@ Lorem ipsum.
 % (c) Remaining questions/ future directions (only if relevant) \\
 
 
+
+
 %=================================================================================================
 \section*{References}
 
 % TODO references
 
+
+
+%=================================================================================================
+%=================================================================================================
 \newpage
 \appendix
+
+
 %=================================================================================================
 \section{Losses used}
 \label{appendix-losses}
