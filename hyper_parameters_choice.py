@@ -176,7 +176,7 @@ def plot_training(data, labels, nb_epoch, data_name, c_sgd, c_sdca, eps_sgd):
 
     # final accuracy
     print("final accuracy SGD :", sgd_clf.score_accuracy(X_test, y_test))
-    
+
     # do it again with SDCA !
     
     sdca_hist_w, sdca_hist_loss = sdca_clf.fit(X_train, y_train, epochs=nb_epoch, save_hist=True)
@@ -218,6 +218,138 @@ def import_data_arrhythmia():
     
     return x, y
 
+def gaussian_kernel(x, Base_proj, h):
+    a = ((x - Base_proj)/h)**2
+    b = np.sum(a, axis=1)
+    return np.exp(-b)
+
+def gaussian_proj(data, Base_proj, h):
+    N, dim = data.shape
+    n, _ = Base_proj.shape
+    data_proj = np.zeros((N, n))
+    for i in range(N):
+        data_proj[i,:] = gaussian_kernel(data[i,:], Base_proj, h)
+    return data_proj
+
+def create_base(data, prop=0.1):
+    N, dim = data.shape
+    n = int(prop*N)
+    index = np.arange(N)
+    np.random.shuffle(index)
+    return data[index[:n],:]
+
+def plot_gausian_arr():
+    data_name = "Arrhythmia"
+    nb_epoch = 40
+
+    x, y = import_data_arrhythmia()
+
+    h = 10
+    prop = 0.1
+    # base of projection
+    Base_proj = create_base(x, prop=prop)
+    x = gaussian_proj(x, Base_proj, h)
+
+    # normalization
+    normalizer = Normalizer(x)
+    x = normalizer.normalize(x)
+
+    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.15)
+
+    # make estimator
+    sgd = LogisticSGD(c=10**3, eps=10**-6)
+    sgd_clf = LogisticRegression(optimizer=sgd)
+
+    sdca = LogisticSDCA(c=10**-1)
+    sdca_clf = LogisticRegression(optimizer=sdca)
+
+    # train estimator with history
+    sgd_hist_w, sgd_hist_loss = sgd_clf.fit(X_train, y_train, epochs=nb_epoch, save_hist=True)
+    sgd_hist_w = np.array(sgd_hist_w)
+
+    sdca_hist_w, sdca_hist_loss = sdca_clf.fit(X_train, y_train, epochs=nb_epoch, save_hist=True)
+    sdca_hist_w = np.array(sdca_hist_w)
+
+    plt.figure()
+    plt.plot(sgd_hist_loss)
+    plt.title("SGD learning loss vs. iteration\non data set " + data_name)
+    plt.xlabel("Iteration")
+    plt.ylabel("Loss")
+
+    plt.figure()
+    plt.title("SDCA learning loss vs. iteration\non data set " + data_name)
+    plt.xlabel("Iteration")
+    plt.ylabel("Loss")
+    plt.plot(sdca_hist_loss)
+
+    sgd_hist_accuracy = get_hist_accuracy(X_test, y_test, sgd_hist_w, sgd_clf)
+    sdca_hist_accuracy = get_hist_accuracy(X_test, y_test, sdca_hist_w, sdca_clf)
+    plt.figure()
+    plt.plot(sgd_hist_accuracy, c='b', label="SGD")
+    plt.plot(sdca_hist_accuracy, c='g', label="SDCA")
+    plt.title("Test accuracy vs. iteration\non data set " + data_name)
+    plt.xlabel("Iteration")
+    plt.ylabel("Accuracy")
+    plt.legend()
+
+
+def eval_h(data, labels, vect_param, nb_epoch, data_name, prop_base, c_sgd, c_sdca, eps_sgd):
+
+    x_train, x_test, y_train, y_test = train_test_split(data, labels, test_size=0.15)
+
+    Base_proj = create_base(x_train, prop=prop_base)
+    dim, _ = Base_proj.shape
+    print("dim :", dim)
+
+    vect_train_accuracy_sgd = []
+    vect_train_accuracy_sdca = []
+
+    vect_test_accuracy_sgd = []
+    vect_test_accuracy_sdca = []
+
+    for param in vect_param:
+
+        X_train = gaussian_proj(x_train, Base_proj, param)
+        X_test = gaussian_proj(x_test, Base_proj, param)
+
+        # normalisation
+        normalizer = Normalizer(X_train)
+        X_train = normalizer.normalize(X_train)
+        X_test = normalizer.normalize(X_test)
+
+        # make estimator
+        sgd = LogisticSGD(c=c_sgd, eps=eps_sgd)
+        sgd_clf = LogisticRegression(optimizer=sgd)
+
+        sdca = LogisticSDCA(c=c_sdca)
+        sdca_clf = LogisticRegression(optimizer=sdca)
+
+        # train estimators without history
+        sgd_clf.fit(X_train, y_train, epochs=nb_epoch, save_hist=False)
+        sdca_clf.fit(X_train, y_train, epochs=nb_epoch, save_hist=False)
+
+        vect_train_accuracy_sgd.append(sgd_clf.score_accuracy(X_train, y_train))
+        vect_train_accuracy_sdca.append(sdca_clf.score_accuracy(X_train, y_train))
+
+        vect_test_accuracy_sgd.append(sgd_clf.score_accuracy(X_test, y_test))
+        vect_test_accuracy_sdca.append(sdca_clf.score_accuracy(X_test, y_test))
+
+    plt.figure()
+    plt.semilogx(vect_param, vect_train_accuracy_sgd, 'b', label="train")
+    plt.semilogx(vect_param, vect_test_accuracy_sgd, 'r', label="test")
+    plt.title("SGD accuracy vs. hyperparameter h\nfor gaussian projection (dim = {})\n on data set ".format(dim) + data_name)
+    plt.xlabel("h")
+    plt.ylabel("Accuracy")
+    plt.legend()
+
+    plt.figure()
+    plt.semilogx(vect_param, vect_train_accuracy_sdca, 'b', label="train")
+    plt.semilogx(vect_param, vect_test_accuracy_sdca, 'r', label="test")
+    plt.title("SDCA accuracy vs. hyperparameter h\nfor gaussian projection (dim = {})\n on data set ".format(dim) + data_name)
+    plt.xlabel("h")
+    plt.ylabel("Accuracy")
+    plt.legend()
+
 
 def main():
     x, y = load_adults_dataset()
@@ -254,7 +386,7 @@ def main():
 if __name__ == '__main__':
     # main()
     
-    x, y = import_data_arrhythmia()
+    # x, y = import_data_arrhythmia()
     
     '''x, y = load_adults_dataset()
     N, dim = x.shape
@@ -266,9 +398,9 @@ if __name__ == '__main__':
     
     # x, y = load_sklearn_dataset(data_set_name="lfw", n=20)
     
-    # normalisation
+    '''# normalisation
     normalizer = Normalizer(x)
-    x = normalizer.normalize(x)
+    x = normalizer.normalize(x)'''
     
     '''vect_C = 10**np.linspace(-5, 7, 50)
     nb_epoch = 30
@@ -280,20 +412,44 @@ if __name__ == '__main__':
     data_name = "Adults"
     eval_eps(x, y, vect_eps, nb_epoch, data_name, param_c=10**4)'''
     
-    # Arrhythmia
-    c_sgd_arr = 10**3
+    # Arhythmia
+    '''c_sgd_arr = 10**3
     c_sdca_arr = 10**-1
     eps_sgd_arr = 10**-5
     data_name = "Arrhythmia"
     plot_training(x, y, nb_epoch=4, data_name=data_name, c_sgd=c_sgd_arr, c_sdca=c_sdca_arr, eps_sgd=eps_sgd_arr)
-    plot_training(x, y, nb_epoch=50, data_name=data_name, c_sgd=c_sgd_arr, c_sdca=c_sdca_arr, eps_sgd=eps_sgd_arr)
+    plot_training(x, y, nb_epoch=50, data_name=data_name, c_sgd=c_sgd_arr, c_sdca=c_sdca_arr, eps_sgd=eps_sgd_arr)'''
     
     # Adults
-    c_sgd_ad = 10**4
+    '''c_sgd_ad = 10**4
     c_sdca_ad = 5*10**-2
     eps_sgd_ad = 5*10**-6
     data_name = "Adults"
     plot_training(x, y, nb_epoch=4, data_name=data_name, c_sgd=c_sgd_ad, c_sdca=c_sdca_ad, eps_sgd=eps_sgd_ad)
-    plot_training(x, y, nb_epoch=50, data_name=data_name, c_sgd=c_sgd_ad, c_sdca=c_sdca_ad, eps_sgd=eps_sgd_ad)
+    plot_training(x, y, nb_epoch=50, data_name=data_name, c_sgd=c_sgd_ad, c_sdca=c_sdca_ad, eps_sgd=eps_sgd_ad)'''
+
+
+    # Gaussian projection
+    #plot_gausian_arr()
+
+    # Arrhythmia
+    vect_h = 10**np.linspace(-2, 7, 70)
+    data_name = "Arrhythmia"
+    x, y = import_data_arrhythmia()
+    nb_epoch = 10
+    eval_h(x, y, vect_h, nb_epoch, data_name, 0.2, 10**3, 10**-1, 10**-5)
+
+    # Adults
+    vect_h = 10**np.linspace(-2, 7, 70)
+    data_name = "Adults"
+    x, y = load_adults_dataset()
+    N, dim = x.shape
+    n_sample = 1200
+    index = np.arange(N)
+    np.random.shuffle(index)
+    x = x[index[:n_sample],:]
+    y = y[index[:n_sample]]
+    nb_epoch = 10
+    eval_h(x, y, vect_h, nb_epoch, data_name, 0.2, 10**4, 5*10**-2, 5*10**-6)
 
     plt.show()
