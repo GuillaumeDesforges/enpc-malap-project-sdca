@@ -22,9 +22,6 @@ def compute_search(x_train: np.ndarray, y_train: np.ndarray, x_test: np.ndarray,
     scores_train = list()
     scores_test = list()
 
-    #plt.ion()
-    #plt.show()
-
     for param_value in param_values:
         np.random.seed(50307)
 
@@ -40,15 +37,7 @@ def compute_search(x_train: np.ndarray, y_train: np.ndarray, x_test: np.ndarray,
         estimator = LogisticRegression(optimizer=optimizer, projection=projection)
 
         # fit estimator
-        hist_w, hist_loss = estimator.fit(x_train, y_train, epochs=15, save_hist=True)
-
-        '''# plot learning
-        #plt.clf()
-        plt.figure()
-        plt.title(", ".join(map(lambda x: "{}={}".format(*x), optimizer_kwargs.items())))
-        plt.plot(hist_loss)
-        plt.draw()
-        plt.pause(0.001)'''
+        estimator.fit(x_train, y_train, epochs=15, save_hist=True)
 
         # evaluate
         score_train = estimator.score_accuracy(x_train, y_train)
@@ -56,14 +45,12 @@ def compute_search(x_train: np.ndarray, y_train: np.ndarray, x_test: np.ndarray,
         scores_train.append(score_train)
         scores_test.append(score_test)
 
-    #plt.close()
-    #plt.ioff()
-
     return scores_train, scores_test
 
 
 def plot_search(param_name: str, param_values: Union[list, np.ndarray], scores_train, scores_test, logarithmic: bool=False):
     plt.figure()
+
     plot_method = plt.semilogx if logarithmic else plt.plot
     plot_method(param_values, scores_train, label='Train set')
     plot_method(param_values, scores_test, label='Test set')
@@ -74,9 +61,10 @@ def plot_search(param_name: str, param_values: Union[list, np.ndarray], scores_t
     plt.ylabel("Accuracy")
     plt.legend()
 
-    #plt.show()
+    plt.show()
 
-def eval_C(data, labels, vect_param, nb_epoch, data_name, eps_base=10**-6):
+
+def eval_c(data, labels, vect_param, nb_epoch, data_name, eps_base=10 ** -6):
     X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.15)
     
     vect_train_accuracy_sgd = []
@@ -119,6 +107,7 @@ def eval_C(data, labels, vect_param, nb_epoch, data_name, eps_base=10**-6):
     plt.ylabel("Accuracy")
     plt.legend()
 
+
 def eval_eps(data, labels, vect_param, nb_epoch, data_name, param_c=10**1):
     X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.15)
     
@@ -146,6 +135,7 @@ def eval_eps(data, labels, vect_param, nb_epoch, data_name, param_c=10**1):
     plt.ylabel("Accuracy")
     plt.legend()
 
+
 # get historic of accuracy
 def get_hist_accuracy(x, y, hist_w, estimator):
     best_w = np.copy(estimator.w)
@@ -156,6 +146,7 @@ def get_hist_accuracy(x, y, hist_w, estimator):
         hist_accuracy.append(accuracy)
     estimator.w = np.copy(best_w)
     return hist_accuracy
+
 
 def plot_training(data, labels, nb_epoch, data_name, c_sgd, c_sdca, eps_sgd):
     X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.15)
@@ -182,11 +173,9 @@ def plot_training(data, labels, nb_epoch, data_name, c_sgd, c_sdca, eps_sgd):
     plt.title("SGD learning loss vs. iteration\non data set " + data_name)
     plt.xlabel("Iteration")
     plt.ylabel("Loss")
-    
-    
+
     # final accuracy
     print("final accuracy SGD :", sgd_clf.score_accuracy(X_test, y_test))
-    
     
     # do it again with SDCA !
     
@@ -216,6 +205,7 @@ def plot_training(data, labels, nb_epoch, data_name, c_sgd, c_sdca, eps_sgd):
     plt.xlabel("Iteration")
     plt.ylabel("Accuracy")
     plt.legend()
+
 
 def import_data_arrhythmia():
     # importation of data
@@ -262,7 +252,7 @@ def main():
 
 
 if __name__ == '__main__':
-    #main()
+    # main()
     
     x, y = import_data_arrhythmia()
     
@@ -274,7 +264,7 @@ if __name__ == '__main__':
     x = x[index[:n_sample],:]
     y = y[index[:n_sample]]'''
     
-    #x, y = load_sklearn_dataset(data_set_name="lfw", n=20)
+    # x, y = load_sklearn_dataset(data_set_name="lfw", n=20)
     
     # normalisation
     normalizer = Normalizer(x)
@@ -290,7 +280,7 @@ if __name__ == '__main__':
     data_name = "Adults"
     eval_eps(x, y, vect_eps, nb_epoch, data_name, param_c=10**4)'''
     
-    # Arhythmia
+    # Arrhythmia
     c_sgd_arr = 10**3
     c_sdca_arr = 10**-1
     eps_sgd_arr = 10**-5
@@ -299,11 +289,11 @@ if __name__ == '__main__':
     plot_training(x, y, nb_epoch=50, data_name=data_name, c_sgd=c_sgd_arr, c_sdca=c_sdca_arr, eps_sgd=eps_sgd_arr)
     
     # Adults
-    '''c_sgd_ad = 10**4
+    c_sgd_ad = 10**4
     c_sdca_ad = 5*10**-2
     eps_sgd_ad = 5*10**-6
     data_name = "Adults"
     plot_training(x, y, nb_epoch=4, data_name=data_name, c_sgd=c_sgd_ad, c_sdca=c_sdca_ad, eps_sgd=eps_sgd_ad)
-    plot_training(x, y, nb_epoch=50, data_name=data_name, c_sgd=c_sgd_ad, c_sdca=c_sdca_ad, eps_sgd=eps_sgd_ad)'''
-    
+    plot_training(x, y, nb_epoch=50, data_name=data_name, c_sgd=c_sgd_ad, c_sdca=c_sdca_ad, eps_sgd=eps_sgd_ad)
+
     plt.show()

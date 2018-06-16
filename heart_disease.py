@@ -18,7 +18,7 @@ from engine.utils.projections import identity_projection, build_polynomial_proje
 
 from sklearn.model_selection import train_test_split
 
-from hyper_parameters_choice import eval_C, eval_eps, plot_training
+from hyper_parameters_choice import eval_c, eval_eps, plot_training
 
 nomFichier = "datasets\Heart_disease\heart_disease_data.pkl"
 
