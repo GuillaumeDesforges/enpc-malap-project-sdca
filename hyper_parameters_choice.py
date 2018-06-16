@@ -218,10 +218,12 @@ def import_data_arrhythmia():
     
     return x, y
 
+
 def gaussian_kernel(x, Base_proj, h):
     a = ((x - Base_proj)/h)**2
     b = np.sum(a, axis=1)
     return np.exp(-b)
+
 
 def gaussian_proj(data, Base_proj, h):
     N, dim = data.shape
@@ -231,12 +233,14 @@ def gaussian_proj(data, Base_proj, h):
         data_proj[i,:] = gaussian_kernel(data[i,:], Base_proj, h)
     return data_proj
 
+
 def create_base(data, prop=0.1):
     N, dim = data.shape
     n = int(prop*N)
     index = np.arange(N)
     np.random.shuffle(index)
     return data[index[:n],:]
+
 
 def plot_gausian_arr():
     data_name = "Arrhythmia"
@@ -294,7 +298,6 @@ def plot_gausian_arr():
 
 
 def eval_h(data, labels, vect_param, nb_epoch, data_name, prop_base, c_sgd, c_sdca, eps_sgd):
-
     x_train, x_test, y_train, y_test = train_test_split(data, labels, test_size=0.15)
 
     Base_proj = create_base(x_train, prop=prop_base)
@@ -308,7 +311,6 @@ def eval_h(data, labels, vect_param, nb_epoch, data_name, prop_base, c_sgd, c_sd
     vect_test_accuracy_sdca = []
 
     for param in vect_param:
-
         X_train = gaussian_proj(x_train, Base_proj, param)
         X_test = gaussian_proj(x_test, Base_proj, param)
 
@@ -351,7 +353,7 @@ def eval_h(data, labels, vect_param, nb_epoch, data_name, prop_base, c_sgd, c_sd
     plt.legend()
 
 
-def main():
+def main1():
     x, y = load_adults_dataset()
 
     # normalisation
@@ -383,54 +385,8 @@ def main():
     plt.show()
 
 
-if __name__ == '__main__':
-    # main()
-    
-    # x, y = import_data_arrhythmia()
-    
-    '''x, y = load_adults_dataset()
-    N, dim = x.shape
-    n_sample = 1200
-    index = np.arange(N)
-    np.random.shuffle(index)
-    x = x[index[:n_sample],:]
-    y = y[index[:n_sample]]'''
-    
-    # x, y = load_sklearn_dataset(data_set_name="lfw", n=20)
-    
-    '''# normalisation
-    normalizer = Normalizer(x)
-    x = normalizer.normalize(x)'''
-    
-    '''vect_C = 10**np.linspace(-5, 7, 50)
-    nb_epoch = 30
-    data_name = "Arrhythmia"
-    eval_C(x, y, vect_C, nb_epoch, data_name)'''
-    
-    '''vect_eps = 10**np.linspace(-10, 0, 70)
-    nb_epoch = 10
-    data_name = "Adults"
-    eval_eps(x, y, vect_eps, nb_epoch, data_name, param_c=10**4)'''
-    
-    # Arhythmia
-    '''c_sgd_arr = 10**3
-    c_sdca_arr = 10**-1
-    eps_sgd_arr = 10**-5
-    data_name = "Arrhythmia"
-    plot_training(x, y, nb_epoch=4, data_name=data_name, c_sgd=c_sgd_arr, c_sdca=c_sdca_arr, eps_sgd=eps_sgd_arr)
-    plot_training(x, y, nb_epoch=50, data_name=data_name, c_sgd=c_sgd_arr, c_sdca=c_sdca_arr, eps_sgd=eps_sgd_arr)'''
-    
-    # Adults
-    '''c_sgd_ad = 10**4
-    c_sdca_ad = 5*10**-2
-    eps_sgd_ad = 5*10**-6
-    data_name = "Adults"
-    plot_training(x, y, nb_epoch=4, data_name=data_name, c_sgd=c_sgd_ad, c_sdca=c_sdca_ad, eps_sgd=eps_sgd_ad)
-    plot_training(x, y, nb_epoch=50, data_name=data_name, c_sgd=c_sgd_ad, c_sdca=c_sdca_ad, eps_sgd=eps_sgd_ad)'''
-
-
+def main2():
     # Gaussian projection
-    #plot_gausian_arr()
 
     # Arrhythmia
     vect_h = 10**np.linspace(-2, 7, 70)
@@ -453,3 +409,7 @@ if __name__ == '__main__':
     eval_h(x, y, vect_h, nb_epoch, data_name, 0.2, 10**4, 5*10**-2, 5*10**-6)
 
     plt.show()
+
+
+if __name__ == '__main__':
+    main2()
